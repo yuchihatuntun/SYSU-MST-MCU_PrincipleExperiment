@@ -500,6 +500,56 @@
     \caption{\texttt{FFFFH + 0001H}后断点}
 \end{figure}
 
+\begin{bluebox}
+    如图可以看到ZF,PF,CF被置位，表示结果为零，且发生了进位,符合预期。而且AF（辅助进位标志）也被置位，表示低四位发生了进位。
+\end{bluebox}
+
+\subsubsection{扩展二}
+
+\begin{figure}[H]\centering
+    \includegraphics[width=\columnwidth]{MCPE-01 Multi-digit 16-bit Hexadecimal Arithmetic Experiment/assets/9.png}
+    \caption{\texttt{6000H + 6000H}后断点}
+\end{figure}
+
+\begin{bluebox}
+    如图可以看到OF,SF,PF被置位，表示结果为负数且二进制表示中有偶数个1。并且发生了溢出，符合预期。
+\end{bluebox}
+
+\subsubsection{扩展三}
+
+\begin{figure}[H]\centering
+    \includegraphics[width=\columnwidth]{MCPE-01 Multi-digit 16-bit Hexadecimal Arithmetic Experiment/assets/10.png}
+    \caption{\texttt{8000H + 8000H}后断点}
+\end{figure}
+
+\begin{bluebox}
+    如图可以看到OF，ZF,PF,CF被置位，表示结果为零，且同时发生了进位和溢出，符合预期。
+\end{bluebox}
+
+\subsubsection{扩展四}
+
+\begin{figure}[H]\centering
+    \includegraphics[width=\columnwidth]{MCPE-01 Multi-digit 16-bit Hexadecimal Arithmetic Experiment/assets/11.png}
+    \caption{\texttt{ADC}后断点}
+\end{figure}
+
+\subsubsection{扩展五}
+
+\begin{figure}[H]\centering
+    \includegraphics[width=\columnwidth]{MCPE-01 Multi-digit 16-bit Hexadecimal Arithmetic Experiment/assets/12.png}
+    \caption{\texttt{ADC}后断点}
+\end{figure}
+
+\begin{bluebox}
+    如图，和之前FFFFH + 0001H的结果一致。
+\end{bluebox}
+
+\subsection{多位十六进制减法运算实验}
+
+\subsubsection{基础实验}
+
+
+
 \section{数据分析与思考总结}
 
 % \subsection*{4.1 \ \ }
@@ -613,15 +663,24 @@ print reg
 \end{lstlisting}
 
 \begin{lstlisting}[language={[x86masm]Assembler}, caption={加法运算-扩展二}]
-CODE SEGMENT
-ASSUME CS:CODE
-BEG: 	
-	MOV AX, 0      
-	ADD AX, 6000H 
-	ADD AX, 6000H 
-	JMP $          
-CODE ENDS
-	END BEG
+OPR1: DW 0x6000         
+OPR2: DW 0x0000         
+OPR3: DW 0x6000         
+RESULT: DW 0            
+
+start:
+MOV AX, word OPR1       
+MOV BX, word OPR2       
+MOV CX, word OPR3       
+
+CLC                     
+ADD AX, BX              
+ADD AX, CX              
+
+MOV DI, OFFSET RESULT   
+MOV word [DI], AX       
+
+print reg               
 \end{lstlisting}
 
 \begin{lstlisting}[language={[x86masm]Assembler}, caption={加法运算-扩展三}]
