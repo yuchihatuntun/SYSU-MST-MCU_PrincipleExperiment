@@ -261,62 +261,8 @@
   \texttt{AX = F000-1-1} \\
   \texttt{AX = EFFEH}
 \end{tabular} \\
-
-\midrule
-扩展四 & 掌握\texttt{DEC}指令 &
-\begin{tabular}[t]{@{}l@{}}
-  \texttt{N1 DW 0000H}
-\end{tabular} &
-\begin{tabular}[t]{@{}l@{}}
-  \texttt{MOV AX, [N1]} \\
-  \texttt{DEC AX}
-\end{tabular} &
-\begin{tabular}[t]{@{}l@{}}
-  \texttt{AX = FFFFH} \\
-  \texttt{CF = 0} (关键!) \\
-  (\texttt{DEC} 不影响 \texttt{CF}) \\
-  \texttt{ZF=0, SF=1}
-\end{tabular} \\
-
-\midrule
-扩展五 & 掌握\texttt{CMP}指令 &
-\begin{tabular}[t]{@{}l@{}}
-  \texttt{N1 DW 5000H} \\
-  \texttt{N2 DW 6000H}
-\end{tabular} &
-\begin{tabular}[t]{@{}l@{}}
-  \texttt{MOV AX, [N1]} \\
-  \texttt{CMP AX, [N1]} \\
-  \texttt{CMP AX, [N2]}
-\end{tabular} &
-\begin{tabular}[t]{@{}l@{}}
-  第一次 \texttt{CMP} (相等): \\
-  \texttt{AX} 不变 (\texttt{5000H}) \\
-  \texttt{ZF = 1}, \texttt{CF = 0} \\
-  第二次 \texttt{CMP} (小于): \\
-  \texttt{AX} 不变 (\texttt{5000H}) \\
-  \texttt{ZF = 0}, \texttt{CF = 1}
-\end{tabular} \\
-
-\midrule
-扩展六 & 掌握\texttt{NEG}指令 &
-\begin{tabular}[t]{@{}l@{}}
-  \texttt{N1 DW 8000H}
-\end{tabular} &
-\begin{tabular}[t]{@{}l@{}}
-  \texttt{MOV AX, [N1]} \\
-  \texttt{NEG AX}
-\end{tabular} &
-\begin{tabular}[t]{@{}l@{}}
-  (特殊: 最小负数) \\
-  \texttt{AX = 8000H} \\
-  \texttt{CF = 1} (有借位) \\
-  \texttt{OF = 1} (溢出)
-\end{tabular} \\
 \bottomrule
 \end{tabular}
-
-\newpage
 
 \subsection{多位十六进制乘法运算实验}
 
@@ -325,26 +271,9 @@
 \begin{tabular}{l l l l l}
 \toprule
 实验名称 & 实验目的 & \texttt{DATA} 段数据 & \texttt{CODE} 段指令 & 预期标志位/寄存器结果 \\
-\midrule
-基础实验 & \texttt{MUL} (8位) & 
-\begin{tabular}[t]{@{}l@{}}
-  \texttt{N1 DB 10H} (16) \\
-  \texttt{N2 DB 05H} (5)
-\end{tabular} &
-\begin{tabular}[t]{@{}l@{}}
-  \texttt{MOV AL, [N1]} \\
-  \texttt{MOV BL, [N2]} \\
-  \texttt{MUL BL}
-\end{tabular} &
-\begin{tabular}[t]{@{}l@{}}
-  (\texttt{AX = AL * BL}) \\
-  \texttt{AX = 0050H} (80) \\
-  \texttt{AH = 00H}, 因此: \\
-  \texttt{CF = 0}, \texttt{OF = 0}
-\end{tabular} \\
 
 \midrule
-扩展一 & \texttt{MUL} (16位) &
+基础实验 & \texttt{MUL} (16位) &
 \begin{tabular}[t]{@{}l@{}}
   \texttt{N1 DW 8000H} \\
   \texttt{N2 DW 0010H}
@@ -363,25 +292,7 @@
 \end{tabular} \\
 
 \midrule
-扩展二 & \texttt{IMUL} (8位) &
-\begin{tabular}[t]{@{}l@{}}
-  \texttt{N1 DB 0FEH} (-2) \\
-  \texttt{N2 DB 04H} (+4)
-\end{tabular} &
-\begin{tabular}[t]{@{}l@{}}
-  \texttt{MOV AL, [N1]} \\
-  \texttt{MOV BL, [N2]} \\
-  \texttt{IMUL BL}
-\end{tabular} &
-\begin{tabular}[t]{@{}l@{}}
-  (\texttt{AX = AL * BL}) \\
-  \texttt{AX = FFF8H} (-8) \\
-  (\texttt{AH} 是 \texttt{AL} 的符号扩展) \\
-  \texttt{CF = 0}, \texttt{OF = 0}
-\end{tabular} \\
-
-\midrule
-扩展三 & \texttt{IMUL} (16位) &
+扩展一 & \texttt{IMUL} (16位) &
 \begin{tabular}[t]{@{}l@{}}
   \texttt{N1 DW 4000H} (+16384) \\
   \texttt{N2 DW 0003H} (+3)
@@ -398,27 +309,6 @@
   (结果 \texttt{+49152} 无法
   存入 \texttt{AX}) \\
   \texttt{CF = 1}, \texttt{OF = 1}
-\end{tabular} \\
-
-\midrule
-扩展四 & \texttt{MUL} vs \texttt{IMUL} &
-\begin{tabular}[t]{@{}l@{}}
-  \texttt{N1 DW 0FFFFH} \\
-  \texttt{N2 DW 0002H}
-\end{tabular} &
-\begin{tabular}[t]{@{}l@{}}
-  \texttt{MOV AX, [N1]} \\
-  \texttt{MOV BX, [N2]} \\
-\end{tabular} &
-\begin{tabular}[t]{@{}l@{}}
-  \texttt{MUL} (无符号): \\
-  \texttt{65535 * 2 = 131070} \\
-  \texttt{DX:AX = 0001:FFFEH} \\
-  \texttt{CF=1, OF=1} \\
-  \texttt{IMUL} (有符号): \\
-  \texttt{-1 * 2 = -2} \\
-  \texttt{DX:AX = FFFF:FFFEH} \\
-  \texttt{CF=0, OF=0}
 \end{tabular} \\
 \bottomrule
 \end{tabular}
@@ -480,7 +370,7 @@
     如图可以看到最终结果\texttt{6666H}已经成功存储在变量\texttt{NUM4}对应的内存地址中，验证了加法运算的正确性。
 \end{bluebox}
 
-\subsubsection{扩展一}
+\subsubsection{扩展一：观察进位 (CF) 和零 (ZF)}
 
 \begin{redbox}
     注意：由于部分扩展实验为课后本地实验，Debug.exe无法直接运行，因此以下扩展实验的结果均通过\href{https://github.com/YJDoc2/8086-Emulator}{\color{blue} 8086 Emulator} 仿真软件进行验证，截图均来自该软件。且由于运行环境不同，部分代码与预期代码略有差异，但均实现了相同的功能。
@@ -504,7 +394,7 @@
     如图可以看到ZF,PF,CF被置位，表示结果为零，且发生了进位,符合预期。而且AF（辅助进位标志）也被置位，表示低四位发生了进位。
 \end{bluebox}
 
-\subsubsection{扩展二}
+\subsubsection{扩展二：观察溢出 (OF) 和符号 (SF)}
 
 \begin{figure}[H]\centering
     \includegraphics[width=\columnwidth]{MCPE-01 Multi-digit 16-bit Hexadecimal Arithmetic Experiment/assets/9.png}
@@ -515,7 +405,7 @@
     如图可以看到OF,SF,PF被置位，表示结果为负数且二进制表示中有偶数个1。并且发生了溢出，符合预期。
 \end{bluebox}
 
-\subsubsection{扩展三}
+\subsubsection{扩展三：观察 OF 和 CF 同时置位}
 
 \begin{figure}[H]\centering
     \includegraphics[width=\columnwidth]{MCPE-01 Multi-digit 16-bit Hexadecimal Arithmetic Experiment/assets/10.png}
@@ -526,14 +416,14 @@
     如图可以看到OF，ZF,PF,CF被置位，表示结果为零，且同时发生了进位和溢出，符合预期。
 \end{bluebox}
 
-\subsubsection{扩展四}
+\subsubsection{扩展四：实现 ADC (带进位加法)}
 
 \begin{figure}[H]\centering
     \includegraphics[width=\columnwidth]{MCPE-01 Multi-digit 16-bit Hexadecimal Arithmetic Experiment/assets/11.png}
     \caption{\texttt{ADC}后断点}
 \end{figure}
 
-\subsubsection{扩展五}
+\subsubsection{扩展五：实现 INC (不影响 CF)}
 
 \begin{figure}[H]\centering
     \includegraphics[width=\columnwidth]{MCPE-01 Multi-digit 16-bit Hexadecimal Arithmetic Experiment/assets/12.png}
@@ -548,69 +438,105 @@
 
 \subsubsection{基础实验}
 
+除减法运算外其余操作与加法运算类似，以下仅展示减法运算过程截图。
 
+\begin{figure}[H]\centering
+    \includegraphics[width=\columnwidth]{MCPE-01 Multi-digit 16-bit Hexadecimal Arithmetic Experiment/assets/13.png}
+    \caption{\texttt{SUB AX,[SI+0]}后断点}
+\end{figure}
 
-\section{数据分析与思考总结}
+\begin{bluebox}
+    如图可见，最终减法结果为0000H，使ZF和PF置位，符合预期。
+\end{bluebox}
 
-% \subsection*{4.1 \ \ }
-% \subsection*{4.2 \ \ }
-% \subsection*{4.3 \ \ }
-% \subsection*{4.4 \ \ }
-% \subsection*{4.5 \ \ }
-% \subsection*{4.6 \ \ }
+\subsubsection{扩展一：\texttt{SUB}指令，相减为零、借位情况}
 
+\begin{figure}[H]\centering
+    \includegraphics[width=\columnwidth]{MCPE-01 Multi-digit 16-bit Hexadecimal Arithmetic Experiment/assets/14.png}
+    \caption{相减之前的寄存器状态}
+\end{figure}
 
+\begin{figure}[H]\centering
+    \includegraphics[width=\columnwidth]{MCPE-01 Multi-digit 16-bit Hexadecimal Arithmetic Experiment/assets/15.png}
+    \caption{\texttt{AX - BX}后断点（相减为0的情况）}
+\end{figure}
 
+\begin{figure}[H]\centering
+    \includegraphics[width=\columnwidth]{MCPE-01 Multi-digit 16-bit Hexadecimal Arithmetic Experiment/assets/16.png}
+    \caption{\texttt{AX - CX}后断点（即 0-1，产生借位）}
+\end{figure}
 
+\begin{bluebox}
+    如图可见，最终结果为FFFFH，使CF, SF, PF置位，符合预期。
+\end{bluebox}
 
+\subsubsection{扩展二：\texttt{SUB}溢出情况}
 
+\begin{figure}[H]\centering
+    \includegraphics[width=\columnwidth]{MCPE-01 Multi-digit 16-bit Hexadecimal Arithmetic Experiment/assets/17.png}
+    \caption{相减之前的寄存器状态}
+\end{figure}
 
+\begin{figure}[H]\centering
+    \includegraphics[width=\columnwidth]{MCPE-01 Multi-digit 16-bit Hexadecimal Arithmetic Experiment/assets/18.png}
+    \caption{\texttt{8000H - 0001H}后断点}
+\end{figure}
 
+\begin{bluebox}
+    如图可见，我们通过使用最小的负数8000H减去正数0001H，得到了结果7FFFH，这个结果是一个正数。然而，由于8000H代表的是-32768，而0001H代表的是+1，因此实际的数学运算是-32768 - 1 = -32769。这个结果超出了16位有符号整数的表示范围（-32768到+32767），因此发生了溢出，导致OF标志被置位。同时，结果7FFFH是一个正数，所以SF标志被清零，符合预期。
+\end{bluebox}
 
+\subsubsection{扩展三：掌握\texttt{SBB}指令}
 
+\begin{figure}[H]\centering
+    \includegraphics[width=\columnwidth]{MCPE-01 Multi-digit 16-bit Hexadecimal Arithmetic Experiment/assets/19.png}
+    \caption{运算之前的寄存器状态（AX,BX,CX）}
+\end{figure}
 
+\begin{figure}[H]\centering
+    \includegraphics[width=\columnwidth]{MCPE-01 Multi-digit 16-bit Hexadecimal Arithmetic Experiment/assets/20.png}
+    \caption{通过\texttt{1000H - 2000H}产生借位}
+\end{figure}
 
+\begin{figure}[H]\centering
+    \includegraphics[width=\columnwidth]{MCPE-01 Multi-digit 16-bit Hexadecimal Arithmetic Experiment/assets/21.png}
+    \caption{利用上一步的结果（F000H）使用SBB指令减去0001H（包含借位的计算）}
+\end{figure}
 
+\begin{bluebox}
+    本次实验结果 $AX$ 为 $EFFEH$，准确证明了 `SBB` 指令的作用，即 $F000H - 0001H - CF(1)$ 的结果；标志位显示 $SF=1$ ($EFFEH$ 为负数) 且 $CF=0$，表明运算成功使用了前一步的借位，但最终没有产生新的借位。
+\end{bluebox}
 
+\subsection{多位十六进制乘法运算实验}
 
+\subsubsection{基础实验}
 
+\begin{figure}[H]\centering
+    \includegraphics[width=\columnwidth]{MCPE-01 Multi-digit 16-bit Hexadecimal Arithmetic Experiment/assets/22.png}
+    \caption{乘法运算结果}
+\end{figure}
 
+\begin{bluebox}
+    经验算，乘法结果正确，其中，结果低4位被存储在AX中，高4位存储在DX中。由于结果超出16位，DX不为0，因此CF和OF被置位，符合预期。
+\end{bluebox}
 
+\subsubsection{扩展一：\texttt{IMUL} （有符号乘法）}
 
+\begin{figure}[H]\centering
+    \includegraphics[width=\columnwidth]{MCPE-01 Multi-digit 16-bit Hexadecimal Arithmetic Experiment/assets/23.png}
+    \caption{有符号乘法运算结果}
+\end{figure}
 
+\section{思考与总结}
 
+在本次实验中，我们通过多个实验步骤深入理解了16位十六进制数的加法、减法、乘法运算及其标志位的变化规律。通过使用汇编语言编写程序并进行调试，我们验证了各种运算指令的行为，并观察到了标志位（如CF、ZF、SF、PF、OF）在不同情况下的变化。
 
+在加法运算实验中，我们首先进行了基础实验，成功实现了三个16位十六进制数的加法，并将结果存储在指定内存位置。随后，通过扩展实验，我们观察了进位（CF）和零（ZF）标志位的变化，验证了当结果超过16位时CF被置位，以及当结果为零时ZF被置位的情况。此外，我们还探讨了溢出（OF）和符号（SF）标志位的行为，特别是在加法结果超出有符号数范围时OF被置位的现象。
 
+在减法运算实验中，我们同样从基础实验开始，成功实现了两个16位十六进制数的减法。通过扩展实验，我们观察了借位（CF）和零（ZF）标志位的变化，验证了当被减数小于减数时CF被置位的情况。同时，我们还探讨了溢出（OF）标志位在减法中的行为，特别是在有符号数范围内进行减法时OF被置位的现象。此外，我们学习了SBB指令的使用，理解了如何在有借位情况下进行减法运算。
 
+在乘法运算实验中，我们通过基础实验实现了16位有符号数的乘法，并观察了结果存储在AX和DX寄存器中的情况。通过扩展实验，我们验证了当乘法结果超出16位时CF和OF标志位被置位的现象。
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-\newpage
 % 附录
 \section*{附录\hspace*{20pt} 实验汇编代码}
 \addcontentsline{toc}{section}{附录 A\hspace*{6pt} 实验汇编代码} 
@@ -716,6 +642,133 @@ BEG:
 	JMP $          
 CODE ENDS
 	END BEG
+\end{lstlisting}
+
+\begin{lstlisting}[language={[x86masm]Assembler}, caption={减法运算-基础实验}]
+CODE SEGMENT
+ASSUME CS:CODE,DS:DATA
+BEG:	MOV AX,DATA
+		MOV DS,AX
+		MOV SI,OFFSET NUM1
+		MOV AX,6666H
+		SUB AX,[SI+0]
+		SUB AX,[SI+2]
+		SUB AX,[SI+4]
+		MOV [SI+6],AX
+		JMP $
+CODE ENDS
+DATA SEGMENT
+NUM1 DW 1111H ;N1
+NUM2 DW 2222H ;N2
+NUM3 DW 3333H ;N3
+NUM4 DW 0000H ;N4
+DATA ENDS
+		END BEG
+\end{lstlisting}
+
+\begin{lstlisting}[language={[x86masm]Assembler}, caption={减法运算-扩展一}]
+OPR1: DW 0x5555         
+OPR2: DW 0x5555         
+OPR3: DW 0x0001         
+RESULT: DW 0            
+
+start:
+MOV AX, word OPR1       
+MOV BX, word OPR2       
+MOV CX, word OPR3       
+
+CLC                     
+SUB AX, BX              ; AX=0000H, ZF=1
+SUB AX, CX              ; AX=FFFFH, CF=1
+
+MOV DI, OFFSET RESULT   
+MOV word [DI], AX       
+
+print reg               
+\end{lstlisting}
+
+\begin{lstlisting}[language={[x86masm]Assembler}, caption={减法运算-扩展二}]
+OPR1: DW 0x8000         
+OPR2: DW 0x0001         
+RESULT: DW 0            
+
+start:
+MOV AX, word OPR1       
+MOV BX, word OPR2       
+
+CLC                     
+SUB AX, BX              
+
+MOV DI, OFFSET RESULT   
+MOV word [DI], AX       
+
+print reg               
+\end{lstlisting}
+
+\begin{lstlisting}[language={[x86masm]Assembler}, caption={减法运算-扩展三}]
+OPR1: DW 0x1000         
+OPR2: DW 0x2000         
+OPR3: DW 0x0001         
+RESULT: DW 0            
+
+start:
+MOV AX, word OPR1       
+MOV BX, word OPR2       
+MOV CX, word OPR3       
+
+CLC                     
+SUB AX, BX              ; 产生CF=1
+
+SBB AX, CX              ; AX = F000H - 0001H - 1 = EFFEH
+
+MOV DI, OFFSET RESULT   
+MOV word [DI], AX       
+
+print reg               
+\end{lstlisting}           
+
+\begin{lstlisting}[language={[x86masm]Assembler}, caption={乘法运算-基础实验}]
+CODE SEGMENT
+ASSUME CS:CODE,DS:DATA
+BEG:	MOV AX,DATA
+		MOV DS,AX
+		MOV SI,OFFSET NUM1
+		MOV AX,[SI+0]
+		MOV BX,[SI+2]
+		MUL BX
+		MOV [SI+4],AX
+		MOV [SI+6],DX
+		JMP $
+CODE ENDS
+DATA SEGMENT
+NUM1 DW 1111H ;N1
+NUM2 DW 2222H ;N2
+NUM3 DW 0000H ;N3
+NUM4 DW 0000H ;N4
+DATA ENDS
+		END BEG              
+\end{lstlisting}
+
+\begin{lstlisting}[language={[x86masm]Assembler}, caption={乘法运算-扩展一}]
+CODE SEGMENT
+ASSUME CS:CODE,DS:DATA
+BEG:	MOV AX,DATA
+		MOV DS,AX
+		MOV SI,OFFSET NUM1
+		MOV AX,[SI+0]
+		MOV BX,[SI+2]
+		IMUL BX
+		MOV [SI+4],AX
+		MOV [SI+6],DX
+		JMP $
+CODE ENDS
+DATA SEGMENT
+NUM1 DW 1111H ;N1
+NUM2 DW 0FEDCH ;N2
+NUM3 DW 0000H ;N3
+NUM4 DW 0000H ;N4
+DATA ENDS
+		END BEG             
 \end{lstlisting}
 
 \end{document}
