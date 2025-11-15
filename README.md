@@ -1,4 +1,4 @@
-# UCAS-LinearCircuitExperiment
+# SYSU-MCU_PrincipleExperiment
 
 ## Introduction
 
