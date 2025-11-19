@@ -1,0 +1,70 @@
+EMU8086 GENERATED LISTING. MACHINE CODE <- SOURCE.
+ 
+MCPE-03.exe -- emu8086 assembler version: 4.08  
+ 
+[ 2025-11-19  --  9:09:48 ] 
+ 
+===================================================================================================
+[LINE]     LOC: MACHINE CODE                          SOURCE
+===================================================================================================
+ 
+[   1]        :                                       CODE    SEGMENT
+[   2]        :                                       ASSUME  CS:CODE          ; 关联代码段寄存器
+[   3]        :                                       CON_A   EQU 25           ; 定义常量CON_A=25
+[   4]        :                                       CON_B   EQU 12           ; 定义常量CON_B=12
+[   5]        :                                       
+[   6]    0000: B8 19 00                              START:  MOV     AX, CON_A       ; 将CON_A的值存入AX（AX=25）
+[   7]    0003: BB 0C 00                              MOV     BX, CON_B       ; 将CON_B的值存入BX（BX=12）
+[   8]    0006: 3B C3                                 CMP     AX, BX          ; 比较AX和BX的值（25 vs 12）
+[   9]    0008: 73 04                                 JNC     MO_T            ; 若AX ≥ BX（无进位），跳至MO_T
+[  10]    000A: 74 04                                 JE      EQUA            ; 若AX = BX（相等），跳至EQUA
+[  11]    000C: 72 04                                 JC      LESS            ; 若AX < BX（有进位），跳至LESS
+[  12]        :                                       
+[  13]    000E: EB FE                                 MO_T:   JMP     $               ; AX ≥ BX时执行，无限循环
+[  14]    0010: EB FE                                 EQUA:   JMP     $               ; AX = BX时执行，无限循环
+[  15]    0012: EB FE                                 LESS:   JMP     $               ; AX < BX时执行，无限循环
+[  16]        :                                       
+[  17]        :                                       CODE    ENDS                    ; 代码段结束
+[  18]        :                                       END     START           ; 程序入口点为START
+[  19]        :                                       
+ 
+===================================================================================================
+ 
+EXE HEADER - bytes from 0000 to 01FF inclusive.
+
+0000: 4D      -   exe signature (M)
+0001: 5A      -   exe signature (Z)
+0002: 14      -   bytes on last page (l.byte)
+0003: 00      -   bytes on last page (h.byte)
+0004: 02      -   512 byte pages in file (l.byte)
+0005: 00      -   512 byte pages in file (h.byte)
+0006: 00      -   relocations (l.byte)
+0007: 00      -   relocations (h.byte)
+0008: 20      -   paragraphs in header (l.byte)
+0009: 00      -   paragraphs in header (h.byte)
+000A: 00      -   minimum memory (l.byte)
+000B: 00      -   minimum memory (h.byte)
+000C: FF      -   maximum memory (l.byte)
+000D: FF      -   maximum memory (h.byte)
+000E: 00      -   SS - stack segment (l.byte)
+000F: 00      -   SS - stack segment (h.byte)
+0010: 00      -   SP - stack pointer (l.byte)
+0011: 00      -   SP - stack pointer (h.byte)
+0012: 45      -   check sum (l.byte)
+0013: 03      -   check sum (h.byte)
+0014: 00      -   IP - instruction pointer (l.byte)
+0015: 00      -   IP - instruction pointer (h.byte)
+0016: 00      -   CS - code segment (l.byte)
+0017: 00      -   CS - code segment (h.byte)
+0018: 1E      -   relocation table adress (l.byte)
+0019: 00      -   relocation table adress (h.byte)
+001A: 00      -   overlay number (l.byte)
+001B: 00      -   overlay number (h.byte)
+001C: 01      -   signature (l.byte)
+001D: 00      -   signature (h.byte)
+001E to 01FF  -   reserved relocation area  (00) 
+
+
+
+
+===================================================================================================

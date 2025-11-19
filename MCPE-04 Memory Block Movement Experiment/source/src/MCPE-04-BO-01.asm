@@ -1,0 +1,40 @@
+CODE    SEGMENT
+        ASSUME  CS:CODE, DS:CODE  ; 段定义，DS和CS共用同一空间
+
+START:  MOV     AX, CS
+        MOV     DS, AX            ; DS指向代码段（临时用作数据区）
+        MOV     ES, AX            ; ES与DS保持一致
+
+        ; 初始化源数据
+        MOV     SI, 1000H         ; 源首地址：1000H
+        MOV     CX, 10            
+        MOV     AL, 1
+INIT_SRC:
+        MOV     [SI], AL          ; 写入数据到1000H开始的地址
+        INC     AL
+        INC     SI
+        LOOP    INIT_SRC
+
+        ; 配置后向重叠搬运参数
+        MOV     SI, 1000H         ; 源首地址：1000H
+        MOV     DI, 1002H         ; 目的首地址：1002H（与源重叠）
+        MOV     CX, 10            ; 搬运长度：10字节
+
+        ; 指针调整到末尾
+        ADD     SI, CX
+        DEC     SI                ; 源末尾地址：1000H+10-1=1009H
+        ADD     DI, CX
+        DEC     DI                ; 目的末尾地址：1002H+10-1=100BH
+
+        ; 倒序循环搬运
+BACK_COPY:
+        MOV     AL, [SI]
+        MOV     [DI], AL          ; 直接用DS偏移DI（因DS=ES）
+        DEC     SI
+        DEC     DI
+        DEC     CX
+        JNZ     BACK_COPY
+
+        JMP     $                  ; 程序暂停
+CODE    ENDS
+        END     START

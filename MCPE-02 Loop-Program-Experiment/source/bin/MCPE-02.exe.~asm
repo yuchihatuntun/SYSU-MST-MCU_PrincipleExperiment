@@ -1,0 +1,17 @@
+CODE    SEGMENT
+ASSUME  CS:CODE          ; 关联代码段寄存器
+CON_A   EQU 25           ; 定义常量CON_A
+CON_B   EQU 12           ; 定义常量CON_B
+
+START:  MOV     AX, 0           ; 初始化AX为0
+MOV     CX, 5           ; 设置循环次数为5
+INC_AX: NOP                     ; 空操作（占位）
+INC     AX              ; AX自增1
+LOOP    INC_AX          ; 循环执行，直到CX=0(LOOP会自动递减CX)
+JMP     $               ; 无限循环（程序暂停）
+CODE    ENDS                    ; 代码段结束
+END     START           ; 程序入口点为START
+
+
+
+; [SOURCE]: E:\Github Repos\SYSU-MST-MCU_PrincipleExperiment\MCPE-02 Loop-Program-Experiment\source\src\MCPE-02.asm

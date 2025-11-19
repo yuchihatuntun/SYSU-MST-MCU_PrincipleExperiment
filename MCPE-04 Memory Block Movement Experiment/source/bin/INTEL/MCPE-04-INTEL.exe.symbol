@@ -1,0 +1,14 @@
+< THE SYMBOL TABLE >  MCPE-04-INTEL.exe  --  emu8086 assembler version: 4.08 
+===================================================================================================
+Name                     	Offset    	Size      	Type      	Segment   
+===================================================================================================
+CODE                     	00000     	-5        	SEGMENT   	(ITSELF)  
+START                    	00000     	-1        	LABEL     	CODE      
+INIT_DATA                	0000E     	-1        	LABEL     	CODE      
+USE_BACKWARD             	00022     	-1        	LABEL     	CODE      
+USE_FORWARD              	0002B     	-1        	LABEL     	CODE      
+DO_MOVE                  	0002C     	-1        	LABEL     	CODE      
+===================================================================================================
+[ 2025-11-19  --  11:17:53 ] 
+< END >
+ 

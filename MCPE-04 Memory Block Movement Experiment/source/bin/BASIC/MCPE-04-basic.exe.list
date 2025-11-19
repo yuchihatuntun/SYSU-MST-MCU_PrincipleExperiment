@@ -1,0 +1,79 @@
+EMU8086 GENERATED LISTING. MACHINE CODE <- SOURCE.
+ 
+MCPE-04-basic.exe -- emu8086 assembler version: 4.08  
+ 
+[ 2025-11-19  --  10:35:04 ] 
+ 
+===================================================================================================
+[LINE]     LOC: MACHINE CODE                          SOURCE
+===================================================================================================
+ 
+[   1]        :                                       CODE    SEGMENT
+[   2]        :                                       ASSUME  CS:CODE          ; 关联代码段寄存器
+[   3]        :                                       
+[   4]    0000: BE 00 10                              START:  MOV     SI, 1000H       ; 源地址指针初始化（1000H）
+[   5]    0003: B9 0A 00                              MOV     CX, 10          ; 循环次数=10（操作10个字节）
+[   6]    0006: B0 01                                 MOV     AL, 1           ; 初始值AL=1（原代码"1PU_IN"修正为合法初始值）
+[   7]        :                                       
+[   8]    0008: 88 04                                 PU_IN:  MOV     [SI], AL        ; 将AL的值存入[SI]（1000H开始的内存）
+[   9]    000A: FE C0                                 INC     AL              ; AL自增1（下一个数值：2→3→...→100）
+[  10]    000C: 46                                    INC     SI              ; 源地址指针后移1字节
+[  11]    000D: E2 F9                                 LOOP    PU_IN           ; 循环执行，直到CX=0（完成10个字节写入）
+[  12]        :                                       
+[  13]        :                                       ; 以下为内存块移动逻辑
+[  14]    000F: B9 0A 00                              MOV     CX, 10          ; 重置循环次数=10
+[  15]    0012: BE 00 10                              MOV     SI, 1000H       ; 重置源地址指针（1000H）
+[  16]    0015: BF 00 11                              MOV     DI, 1100H       ; 目标地址指针初始化（1100H）
+[  17]        :                                       
+[  18]    0018: 8A 04                                 FADR:   MOV     AL, [SI]        ; 从源地址读取1字节到AL
+[  19]    001A: 88 05                                 MOV     [DI], AL        ; 将AL的值写入目标地址
+[  20]    001C: 46                                    INC     SI              ; 源地址指针后移
+[  21]    001D: 47                                    INC     DI              ; 目标地址指针后移
+[  22]    001E: 49                                    DEC     CX              ; 循环次数减1
+[  23]    001F: 75 F7                                 JNE     FADR            ; 若CX≠0，继续循环移动
+[  24]        :                                       
+[  25]    0021: EB FE                                 JMP     $               ; 程序暂停（无限循环）
+[  26]        :                                       CODE    ENDS                    ; 代码段结束
+[  27]        :                                       END     START           ; 程序入口点为START
+[  28]        :                                       
+ 
+===================================================================================================
+ 
+EXE HEADER - bytes from 0000 to 01FF inclusive.
+
+0000: 4D      -   exe signature (M)
+0001: 5A      -   exe signature (Z)
+0002: 23      -   bytes on last page (l.byte)
+0003: 00      -   bytes on last page (h.byte)
+0004: 02      -   512 byte pages in file (l.byte)
+0005: 00      -   512 byte pages in file (h.byte)
+0006: 00      -   relocations (l.byte)
+0007: 00      -   relocations (h.byte)
+0008: 20      -   paragraphs in header (l.byte)
+0009: 00      -   paragraphs in header (h.byte)
+000A: 00      -   minimum memory (l.byte)
+000B: 00      -   minimum memory (h.byte)
+000C: FF      -   maximum memory (l.byte)
+000D: FF      -   maximum memory (h.byte)
+000E: 00      -   SS - stack segment (l.byte)
+000F: 00      -   SS - stack segment (h.byte)
+0010: 00      -   SP - stack pointer (l.byte)
+0011: 00      -   SP - stack pointer (h.byte)
+0012: 94      -   check sum (l.byte)
+0013: 03      -   check sum (h.byte)
+0014: 00      -   IP - instruction pointer (l.byte)
+0015: 00      -   IP - instruction pointer (h.byte)
+0016: 00      -   CS - code segment (l.byte)
+0017: 00      -   CS - code segment (h.byte)
+0018: 1E      -   relocation table adress (l.byte)
+0019: 00      -   relocation table adress (h.byte)
+001A: 00      -   overlay number (l.byte)
+001B: 00      -   overlay number (h.byte)
+001C: 01      -   signature (l.byte)
+001D: 00      -   signature (h.byte)
+001E to 01FF  -   reserved relocation area  (00) 
+
+
+
+
+===================================================================================================
