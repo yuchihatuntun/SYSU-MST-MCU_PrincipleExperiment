@@ -1,0 +1,132 @@
+EMU8086 GENERATED LISTING. MACHINE CODE <- SOURCE.
+ 
+MCPE-07-BASIC.exe -- emu8086 assembler version: 4.08  
+ 
+[ 2025-11-26  --  10:15:40 ] 
+ 
+===================================================================================================
+[LINE]     LOC: MACHINE CODE                          SOURCE
+===================================================================================================
+ 
+[   1]        :                                       ;==============================================
+[   2]        :                                       ; 数据排列实验 - 冒泡排序算法
+[   3]        :                                       ; 对内存0200H-0205H的6个字节进行升序排序
+[   4]        :                                       ; 支持任意长度数组和边界检查
+[   5]        :                                       ;==============================================
+[   6]        :                                       
+[   7]        :                                       CODE    SEGMENT
+[   8]        :                                       ASSUME  CS:CODE
+[   9]        :                                       
+[  10]    0000:                                       START:
+[  11]    0000: 8C C8                                 MOV     AX, CS
+[  12]    0002: 8E D8                                 MOV     DS, AX
+[  13]        :                                       
+[  14]        :                                       
+[  15]    0004: C6 06 00 02 19                        MOV     BYTE PTR [0200H], 25
+[  16]    0009: C6 06 01 02 2E                        MOV     BYTE PTR [0201H], 46
+[  17]    000E: C6 06 02 02 03                        MOV     BYTE PTR [0202H], 3
+[  18]    0013: C6 06 03 02 4B                        MOV     BYTE PTR [0203H], 75
+[  19]    0018: C6 06 04 02 05                        MOV     BYTE PTR [0204H], 5
+[  20]    001D: C6 06 05 02 1E                        MOV     BYTE PTR [0205H], 30
+[  21]        :                                       
+[  22]        :                                       ; 调用子程序
+[  23]    0022: E8 02 00                              CALL    BUBBLE_SORT
+[  24]        :                                       
+[  25]    0025: EB FE                                 JMP     $
+[  26]        :                                       
+[  27]        :                                       ;==============================================
+[  28]        :                                       ; 冒泡排序
+[  29]        :                                       ; 输入：DS:[0200H]开始的6个字节
+[  30]        :                                       ; 输出：原地排序后的6个字节
+[  31]        :                                       ;==============================================
+[  32]    0027:                                       BUBBLE_SORT PROC NEAR
+[  33]    0027: B9 06 00                              MOV     CX, 6                   ; 数组长度
+[  34]    002A: 83 F9 01                              CMP     CX, 1                   ; 如果长度<=1，直接返回
+[  35]    002D: 76 32                                 JBE     SORT_DONE
+[  36]        :                                       
+[  37]    002F: 49                                    DEC     CX                      ; 外层循环次数 = 长度-1
+[  38]        :                                       
+[  39]    0030:                                       OUTER_LOOP:
+[  40]    0030: BB 00 00                              MOV     BX, 0                   ; 交换标志：0=未交换
+[  41]    0033: BE 00 00                              MOV     SI, 0                   ; 内层循环索引从0开始
+[  42]        :                                       
+[  43]    0036:                                       INNER_LOOP:
+[  44]        :                                       ; 边界检查：SI+1 是否越界
+[  45]    0036: 8B C6                                 MOV     AX, SI
+[  46]    0038: 40                                    INC     AX
+[  47]    0039: 3D 06 00                              CMP     AX, 6                   ; 比较索引是否超出数组边界
+[  48]    003C: 73 1C                                 JAE     END_INNER_LOOP          ; 如果SI+1 >= 数组长度，结束内层循环
+[  49]        :                                       
+[  50]        :                                       ; 读取相邻元素进行比较
+[  51]    003E: 8A 84 00 02                           MOV     AL, [0200H + SI]        ; AL = 当前元素
+[  52]    0042: 8A A4 01 02                           MOV     AH, [0200H + SI + 1]    ; AH = 下一个元素
+[  53]        :                                       
+[  54]        :                                       ; 比较并决定是否交换
+[  55]    0046: 3A C4                                 CMP     AL, AH
+[  56]    0048: 76 0D                                 JBE     NO_SWAP                 ; 如果AL <= AH，不需要交换（升序排序）
+[  57]        :                                       
+[  58]        :                                       ; 执行交换
+[  59]    004A: 86 C4                                 XCHG    AL, AH
+[  60]    004C: 88 84 00 02                           MOV     [0200H + SI], AL        ; 存回当前元素
+[  61]    0050: 88 A4 01 02                           MOV     [0200H + SI + 1], AH    ; 存回下一个元素
+[  62]    0054: BB 01 00                              MOV     BX, 1                   ; 设置交换标志
+[  63]        :                                       
+[  64]    0057:                                       NO_SWAP:
+[  65]    0057: 46                                    INC     SI                      ; 移动到下一对元素
+[  66]    0058: EB DC                                 JMP     INNER_LOOP
+[  67]        :                                       
+[  68]    005A:                                       END_INNER_LOOP:
+[  69]        :                                       ; 检查是否发生交换
+[  70]    005A: 83 FB 00                              CMP     BX, 0
+[  71]    005D: 74 02                                 JE      SORT_DONE               ; 本轮无交换，排序完成
+[  72]        :                                       
+[  73]    005F: E2 CF                                 LOOP    OUTER_LOOP              ; 继续下一轮排序
+[  74]        :                                       
+[  75]    0061:                                       SORT_DONE:
+[  76]    0061: C3                                    RET
+[  77]        :                                       BUBBLE_SORT ENDP
+[  78]        :                                       
+[  79]        :                                       CODE    ENDS
+[  80]        :                                       END     START
+[  81]        :                                       
+ 
+===================================================================================================
+ 
+EXE HEADER - bytes from 0000 to 01FF inclusive.
+
+0000: 4D      -   exe signature (M)
+0001: 5A      -   exe signature (Z)
+0002: 62      -   bytes on last page (l.byte)
+0003: 00      -   bytes on last page (h.byte)
+0004: 02      -   512 byte pages in file (l.byte)
+0005: 00      -   512 byte pages in file (h.byte)
+0006: 00      -   relocations (l.byte)
+0007: 00      -   relocations (h.byte)
+0008: 20      -   paragraphs in header (l.byte)
+0009: 00      -   paragraphs in header (h.byte)
+000A: 00      -   minimum memory (l.byte)
+000B: 00      -   minimum memory (h.byte)
+000C: FF      -   maximum memory (l.byte)
+000D: FF      -   maximum memory (h.byte)
+000E: 00      -   SS - stack segment (l.byte)
+000F: 00      -   SS - stack segment (h.byte)
+0010: 00      -   SP - stack pointer (l.byte)
+0011: 00      -   SP - stack pointer (h.byte)
+0012: 6E      -   check sum (l.byte)
+0013: 8D      -   check sum (h.byte)
+0014: 00      -   IP - instruction pointer (l.byte)
+0015: 00      -   IP - instruction pointer (h.byte)
+0016: 00      -   CS - code segment (l.byte)
+0017: 00      -   CS - code segment (h.byte)
+0018: 1E      -   relocation table adress (l.byte)
+0019: 00      -   relocation table adress (h.byte)
+001A: 00      -   overlay number (l.byte)
+001B: 00      -   overlay number (h.byte)
+001C: 01      -   signature (l.byte)
+001D: 00      -   signature (h.byte)
+001E to 01FF  -   reserved relocation area  (00) 
+
+
+
+
+===================================================================================================

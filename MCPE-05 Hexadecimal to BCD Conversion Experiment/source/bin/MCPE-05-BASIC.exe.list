@@ -1,0 +1,93 @@
+EMU8086 GENERATED LISTING. MACHINE CODE <- SOURCE.
+ 
+MCPE-05-BASIC.exe -- emu8086 assembler version: 4.08  
+ 
+[ 2025-11-26  --  9:31:36 ] 
+ 
+===================================================================================================
+[LINE]     LOC: MACHINE CODE                          SOURCE
+===================================================================================================
+ 
+[   1]        :                                       CODE SEGMENT
+[   2]        :                                       ASSUME CS:CODE
+[   3]    0000:                                       START:
+[   4]    0000: 8C C8                                 MOV  AX, CS           ; 设置 DS 指向代码段（关键修正）
+[   5]    0002: 8E D8                                 MOV  DS, AX
+[   6]        :                                       
+[   7]    0004: BA 00 00                              MOV  DX, 0000H        ; 清除 DX
+[   8]    0007: B8 FF FF                              MOV  AX, 65535        ; 测试值 AX=65535 (0FFFFH)
+[   9]        :                                       
+[  10]        :                                       ; --- 拆分万位 (6) ---
+[  11]    000A: BB 10 27                              MOV  BX, 10000        ; 除数 = 10000
+[  12]    000D: F7 F3                                 DIV  BX               ; AX / BX → 商(AL)=万位, 余数(DX)
+[  13]    000F: A2 00 02                              MOV  [0200H], AL      ; 直接写入内存地址 0200H
+[  14]        :                                       
+[  15]        :                                       ; --- 拆分千位 (5) ---
+[  16]    0012: 8B C2                                 MOV  AX, DX           ; 余数 → AX
+[  17]    0014: BA 00 00                              MOV  DX, 0000H        ; 重置 DX
+[  18]    0017: BB E8 03                              MOV  BX, 1000         ; 除数 = 1000
+[  19]    001A: F7 F3                                 DIV  BX               ; AX / BX → 商(AL)=千位, 余数(DX)
+[  20]    001C: A2 01 02                              MOV  [0201H], AL      ; 直接写入内存地址 0201H
+[  21]        :                                       
+[  22]        :                                       ; --- 拆分百位 (5) ---
+[  23]    001F: 8B C2                                 MOV  AX, DX           ; 余数 → AX
+[  24]    0021: BA 00 00                              MOV  DX, 0000H        ; 重置 DX
+[  25]    0024: BB 64 00                              MOV  BX, 100          ; 除数 = 100
+[  26]    0027: F7 F3                                 DIV  BX               ; AX / BX → 商(AL)=百位, 余数(DX)
+[  27]    0029: A2 02 02                              MOV  [0202H], AL      ; 直接写入内存地址 0202H
+[  28]        :                                       
+[  29]        :                                       ; --- 拆分十位 (3) ---
+[  30]    002C: 8B C2                                 MOV  AX, DX           ; 余数 → AX
+[  31]    002E: BA 00 00                              MOV  DX, 0000H        ; 重置 DX
+[  32]    0031: BB 0A 00                              MOV  BX, 10           ; 除数 = 10
+[  33]    0034: F7 F3                                 DIV  BX               ; AX / BX → 商(AL)=十位, 余数(DX)
+[  34]    0036: A2 03 02                              MOV  [0203H], AL      ; 直接写入内存地址 0203H
+[  35]        :                                       
+[  36]        :                                       ; --- 拆分个位 (5) ---
+[  37]    0039: 88 16 04 02                           MOV  [0204H], DL      ; 余数(DL)=个位 → 内存地址 0204H
+[  38]        :                                       
+[  39]    003D: EB FE                                 JMP  $                ; 停机指令
+[  40]        :                                       CODE ENDS
+[  41]        :                                       END START
+[  42]        :                                       
+ 
+===================================================================================================
+ 
+EXE HEADER - bytes from 0000 to 01FF inclusive.
+
+0000: 4D      -   exe signature (M)
+0001: 5A      -   exe signature (Z)
+0002: 3F      -   bytes on last page (l.byte)
+0003: 00      -   bytes on last page (h.byte)
+0004: 02      -   512 byte pages in file (l.byte)
+0005: 00      -   512 byte pages in file (h.byte)
+0006: 00      -   relocations (l.byte)
+0007: 00      -   relocations (h.byte)
+0008: 20      -   paragraphs in header (l.byte)
+0009: 00      -   paragraphs in header (h.byte)
+000A: 00      -   minimum memory (l.byte)
+000B: 00      -   minimum memory (h.byte)
+000C: FF      -   maximum memory (l.byte)
+000D: FF      -   maximum memory (h.byte)
+000E: 00      -   SS - stack segment (l.byte)
+000F: 00      -   SS - stack segment (h.byte)
+0010: 00      -   SP - stack pointer (l.byte)
+0011: 00      -   SP - stack pointer (h.byte)
+0012: 51      -   check sum (l.byte)
+0013: F2      -   check sum (h.byte)
+0014: 00      -   IP - instruction pointer (l.byte)
+0015: 00      -   IP - instruction pointer (h.byte)
+0016: 00      -   CS - code segment (l.byte)
+0017: 00      -   CS - code segment (h.byte)
+0018: 1E      -   relocation table adress (l.byte)
+0019: 00      -   relocation table adress (h.byte)
+001A: 00      -   overlay number (l.byte)
+001B: 00      -   overlay number (h.byte)
+001C: 01      -   signature (l.byte)
+001D: 00      -   signature (h.byte)
+001E to 01FF  -   reserved relocation area  (00) 
+
+
+
+
+===================================================================================================

@@ -1,0 +1,494 @@
+% 若编译失败，且生成 .synctex(busy) 辅助文件，可能有两个原因：
+% 1. 需要插入的图片不存在：Ctrl + F 搜索 'figure' 将这些代码注释/删除掉即可
+% 2. 路径/文件名含中文或空格：更改路径/文件名即可
+
+% --------------------- 文章宏包及相关设置 --------------------- %
+% >> ------------------ 文章宏包及相关设置 ------------------ << %
+% 设定文章类型与编码格式
+\documentclass[UTF8]{article}		
+\input{../.config/config_for_MCPExperiment.tex}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% 仅需修改页眉、实验名称、实验日期
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%% 1. 修改页眉内容 %%%%%%%%%%%%%%%%%%
+\rhead{MCP-02 循环、分支、内存块移动实验 (\today, 徐睿琳)}
+
+% 开始编辑文章
+\begin{document}
+\begin{center}\large
+    \vspace*{-0.8cm}
+    \noindent{\huge\bfseries《\ \ 微\ \ 机\ \ 原\ \ 理\ \ 实\ \ 验\ \ \ 》\ \ 实\ \ 验\ \ 报\ \ 告 }
+    \\\vspace{0.1cm}
+    \noindent{
+    {\bfseries 
+%
+%%%%%%%%%%%%%%%%%% 2. 修改实验名称 %%%%%%%%%%%%%%%%%%
+    实验名称：\uline{\hspace{2.2cm} 循环、分支、内存块移动实验 \hspace{2.2cm}}
+%
+    }\hspace{0.4cm}
+    指导教师：\uline{\hspace{0.5cm}肖山林     \hspace{0.5cm}}
+    }
+    \\\vspace{0.1cm}
+    \noindent
+    {
+    姓名：\uline{\,\,\,徐睿琳\,\,\,}\hspace{0.2cm}
+    学号：\uline{\,\,\,{ 23342107}\,\,\,}\hspace{0.2cm}
+    专业/班级：\uline{\,\,\,{微电子/三班}\,\,\,}\hspace{0.2cm}
+    分组序号：\uline{\,\,\,{A412-A05}\,\,\,}
+    }
+    \\\vspace{0.1cm}
+    \noindent{
+%
+%%%%%%%%%%%%%%%%%% 3. 修改实验日期 %%%%%%%%%%%%%%%%%%
+    实验日期：\uline{\,\,{\today}\,\,}\hspace{0.2cm}
+%
+    实验地点：\uline{\,\,\,教学楼{ A412}\,\,\,}\hspace{0.2cm}
+    是否调课/补课：\uline{\hspace{0.26cm}否 \hspace{0.26cm}}\hspace{0.2cm}
+    成绩：\uline{\hspace{2cm}}
+    }
+\end{center}
+\vspace{-0.4cm}
+\noindent\rule{\textwidth}{0.075em}   % 分割线
+\vspace{-1.0cm}
+
+% 生成目录
+\setcounter{tocdepth}{3}  % 目录深度为 2（不显示 subsubsection）
+\noindent\tableofcontents\thispagestyle{fancy}   % 显示页码、页眉等
+
+% ------------------------ 文章信息区 ------------------------ %
+% ------------------------ 文章信息区 ------------------------ %
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 下面是正文内容 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{实验内容与设计}
+
+\subsection{循环程序实验}
+
+\begin{lstlisting}[language={[x86masm]Assembler}]
+	CODE    SEGMENT
+	ASSUME  CS:CODE          
+	CON_A   EQU 25           
+	CON_B   EQU 12           
+	
+	START:  MOV     AX, 0           
+	MOV     CX, 5           
+	INC_AX: NOP                      
+	INC     AX               
+	LOOP    INC_AX          ; LOOP会自动递减CX
+	JMP     $               
+	CODE    ENDS                     
+	END     START  
+\end{lstlisting}
+
+\subsection{分支程序实验}
+
+\begin{lstlisting}[language={[x86masm]Assembler}]
+CODE    SEGMENT
+ASSUME  CS:CODE          
+CON_A   EQU 25           
+CON_B   EQU 12           
+
+START:  MOV     AX, CON_A       
+MOV     BX, CON_B       
+CMP     AX, BX          
+JNC     MO_T            ; AX ≥ BX（无进位），跳至MO_T
+JE      EQUA            ; AX = BX（相等），跳至EQUA
+JC      LESS            ; AX < BX（有进位），跳至LESS
+
+MO_T:   MOV     CX, 0100H
+JMP     $       
+EQUA:   MOV     CX, 0200H  
+JMP     $     
+LESS:   MOV     CX, 0300H               
+JMP     $
+
+CODE    ENDS                    
+END     START     
+\end{lstlisting}
+
+\subsection{内存块移动实验}
+
+\begin{figure}[H]\centering
+	\includegraphics[width=1\columnwidth]{MCPE-04 Memory Block Movement Experiment/assets/内存块移动实验-flowchart.png}
+	\caption{程序流程图}
+\end{figure}
+
+\begin{lstlisting}[language={[x86masm]Assembler}]
+CODE    SEGMENT
+ASSUME  CS:CODE, DS:CODE, ES:CODE  ; 段定义
+
+START:  
+MOV     AX, CS
+MOV     DS, AX            ; DS = CS
+MOV     ES, AX            ; ES = CS
+
+MOV     SI, 1000H         
+MOV     CX, 10            
+MOV     AL, 1
+INIT_DATA:
+MOV     [SI], AL
+INC     AL
+INC     SI
+LOOP    INIT_DATA
+
+
+MOV     SI, 1000H         
+MOV     DI, 1002H         ; 目的首地址
+MOV     CX, 10            
+
+CMP     SI, DI            ; 比较SI和DI
+JAE     USE_FORWARD       ; CF=0，对应SI >= DI 
+; SI < DI  
+
+USE_BACKWARD:
+ADD     SI, CX
+DEC     SI                ; SI = SI + CX - 1
+ADD     DI, CX
+DEC     DI                ; DI = DI + CX - 1
+
+STD                       ; DF=1 
+JMP     DO_MOVE           
+
+USE_FORWARD:
+CLD                       ; DF=0 
+
+DO_MOVE:
+REP     MOVSB             
+JMP     $                 
+CODE    ENDS
+END     START
+\end{lstlisting}
+
+\subsection{附加实验：语句相等判断分支}
+
+\begin{figure}[H]\centering
+	\includegraphics[width=1\columnwidth]{MCPE-04 Memory Block Movement Experiment/assets/语句相等判断分支.png}
+	\caption{程序流程图}
+\end{figure}
+
+\begin{lstlisting}[language={[x86masm]Assembler}]
+	CODE    SEGMENT
+	ASSUME  CS:CODE, DS:CODE, ES:CODE  
+	
+	START:  
+	MOV     AX, CS
+	MOV     DS, AX            
+	MOV     ES, AX            
+	
+	
+	MOV     SI, 1000H         ; 字符串1首地址
+	MOV     CX, 5             ; 
+	MOV     AL, 'A'           ; 第一个字符'A'
+	
+	INIT_STR1:                        
+	MOV     [SI], AL          
+	INC     AL                
+	INC     SI                
+	LOOP    INIT_STR1         
+	
+	
+	MOV     DI, 2000H         ; 字符串2首地址
+	MOV     CX, 5             
+	MOV     AL, 'B'           ; 第一个字符'B'
+	
+	INIT_STR2:                        
+	MOV     [DI], AL          
+	INC     AL                
+	INC     DI                
+	LOOP    INIT_STR2         
+	
+	MOV     SI, 1000H         
+	MOV     DI, 2000H         
+	MOV     CX, 5             
+	
+	CLD                       ; DF=0，在串操作时自动递增
+	
+	; - REPE (Repeat While Equal)
+	; - CMPSB (Compare Byte Strings)
+	REPE    CMPSB             
+	
+	
+	JZ      MATCH_ADDR        ; ZF=1，跳转到MATCH_ADDR
+	JNZ     NOMATCH_ADDR      ; ZF=0，跳转到NOMATCH_ADDR
+	
+	
+	MATCH_ADDR:                       
+	MOV     AX, 0000H         
+	JMP     STOP_PROG         
+	
+	NOMATCH_ADDR:                     
+	MOV     AX, 0FFFFH        
+	JMP     STOP_PROG        
+	
+	STOP_PROG:                        
+	JMP     $                 
+	
+	CODE    ENDS
+	END     START             
+\end{lstlisting}
+
+\section{实验结果}
+
+\subsection{循环程序实验}
+
+\begin{figure}[H]\centering
+	\includegraphics[width=0.65\columnwidth]{MCPE-04 Memory Block Movement Experiment/assets/循环-赋初值.png}
+	\caption{为\texttt{AX}、\texttt{CX}赋初值}
+\end{figure}
+
+\textbf{循环过程}：
+
+
+\begin{figure}[H]\centering
+	\begin{subfigure}[b]{0.5\columnwidth}\centering
+		\includegraphics[height=170pt]{MCPE-04 Memory Block Movement Experiment/assets/循环过程-01.png}
+		\caption{循环过程-01：为\texttt{AX}、\texttt{CX}赋初值}
+	\end{subfigure}\hfill
+	\begin{subfigure}[b]{0.5\columnwidth}\centering
+		\includegraphics[height=170pt]{MCPE-04 Memory Block Movement Experiment/assets/循环过程-02.png}
+		\caption{循环过程-02：执行循环体}
+	\end{subfigure}
+	\begin{subfigure}[b]{0.5\columnwidth}\centering
+		\includegraphics[height=170pt]{MCPE-04 Memory Block Movement Experiment/assets/循环过程-03.png}
+		\caption{循环过程-03：循环结束}
+	\end{subfigure}
+	\caption{循环执行过程}
+\end{figure}
+
+\subsection{分支程序实验}
+
+\begin{figure}[H]\centering
+	\includegraphics[width=0.65\columnwidth]{MCPE-04 Memory Block Movement Experiment/assets/分支-赋初值.png}
+	\caption{为\texttt{AX}、\texttt{BX}赋初值}
+\end{figure}
+
+\begin{figure}[H]\centering
+	\includegraphics[width=0.65\columnwidth]{MCPE-04 Memory Block Movement Experiment/assets/比较跳转结果.png}
+	\caption{比较跳转结果 25>12}
+\end{figure}
+
+\subsection{内存块移动实验}
+
+\begin{figure}[H]\centering
+	\includegraphics[width=0.65\columnwidth]{MCPE-04 Memory Block Movement Experiment/assets/创建SI字符串.png}
+	\caption{创建SI字符串 01 02 ...... 0A}
+\end{figure}
+
+\begin{figure}[H]\centering
+	\includegraphics[width=0.65\columnwidth]{MCPE-04 Memory Block Movement Experiment/assets/设置：SI = 1000H，DI = 1002H.png}
+	\caption{设置：SI = 1000H，DI = 1002H}
+\end{figure}
+
+\begin{figure}[H]\centering
+	\includegraphics[width=0.65\columnwidth]{MCPE-04 Memory Block Movement Experiment/assets/跳转到倒向迁移.png}
+	\caption{由于SI < DI，所以跳转到倒向迁移}
+\end{figure}
+
+\subsection{附加实验：语句相等判断分支实验}
+
+\begin{figure}[H]\centering
+	\begin{subfigure}[b]{0.5\columnwidth}\centering
+		\includegraphics[height=170pt]{MCPE-04 Memory Block Movement Experiment/assets/字符串初始化-01.png}
+		\caption{字符串初始化01}
+	\end{subfigure}\hfill
+	\begin{subfigure}[b]{0.5\columnwidth}\centering
+		\includegraphics[height=170pt]{MCPE-04 Memory Block Movement Experiment/assets/字符串初始化-02.png}
+		\caption{字符串初始化02}
+	\end{subfigure}
+\end{figure}
+
+\begin{figure}[H]\centering
+	\includegraphics[width=0.65\columnwidth]{MCPE-04 Memory Block Movement Experiment/assets/跳转结果.png}
+	\caption{比较之后跳转结果（两个字符串不相等）}
+\end{figure}
+
+\section{思考与总结}
+
+本次实验通过四个核心环节系统性地掌握了8086汇编语言的核心编程技术。从基础的循环控制到复杂的内存操作，逐步深入理解了汇编语言在底层硬件控制中的重要作用。实验过程中，通过实际操作验证了理论知识的正确性，特别是在条件标志位的判断和内存地址处理方面获得了宝贵经验。
+
+\section{实验环节分析与优化}
+
+本次实验通过四个核心环节系统性地掌握了8086汇编语言的核心编程技术。从基础的循环控制到复杂的内存操作，逐步深入理解了汇编语言在底层硬件控制中的重要作用。实验过程中，通过实际操作验证了理论知识的正确性，特别是在条件标志位的判断和内存地址处理方面获得了宝贵经验。
+
+\subsection{循环程序实验的优化空间}
+
+\textbf{当前实现：}实验采用LOOP指令实现简单的计数循环，结构清晰但功能单一。
+
+\textbf{优化方向：}
+\begin{itemize}
+	\item \textbf{循环结构多样化：}可增加嵌套循环设计，处理更复杂的数据结构
+	\item \textbf{循环控制优化：}改用DEC+JNZ组合替代LOOP指令，提高代码兼容性
+	\item \textbf{循环边界检测：}增加CX值有效性检查，避免死循环情况
+\end{itemize}
+
+\begin{lstlisting}[language={[x86masm]Assembler}]
+	CMP CX, 0
+	JLE EXIT_LOOP
+	INC_AX:
+	; 循环体
+	DEC CX
+	JNZ INC_AX
+	EXIT_LOOP:
+\end{lstlisting}
+
+\subsection{分支程序实验的改进方案}
+\textbf{现有不足：}条件判断相对简单，缺乏错误处理机制。
+
+\textbf{优化建议：}
+\begin{itemize}
+	\item \textbf{多条件分支：}扩展为多级判断结构，处理更复杂的比较场景
+	\item \textbf{标志位保护：}在关键跳转前保存重要标志位状态
+	\item \textbf{分支预测优化：}调整代码顺序，将概率更高的分支放在前面
+\end{itemize}
+
+\subsection{内存块移动实验的进阶优化}
+
+实验实现了智能的方向判断机制，根据SI和DI的相对位置自动选择复制方向。
+
+\textbf{深度优化：}
+\begin{itemize}
+	\item \textbf{性能提升：}对于大块数据，可采用MOVSW代替MOVSB，减少指令执行次数
+	\item \textbf{边界对齐：}增加地址对齐检查，优化内存访问效率
+	\item \textbf{重叠检测增强：}完善重叠区域检测算法，确保数据完整性
+\end{itemize}
+
+\begin{lstlisting}[language={[x86masm]Assembler}]
+	CMP SI, DI
+	JB BACKWARD_COPY
+	JE NO_OPERATION  ; 增加相同地址处理
+	
+	FORWARD_COPY:
+	CLD
+	SHR CX, 1     ; 字传输优化
+	REP MOVSW
+	JMP COPY_END
+\end{lstlisting}
+
+\subsection{字符串比较实验的扩展可能}
+
+通过REPE CMPSB指令实现了高效的字符串比较功能。
+
+\textbf{功能扩展：}
+
+\begin{itemize}
+	\item \textbf{比较结果细化：}不仅判断是否相等，还能返回首个不匹配字符位置
+	\item \textbf{大小写不敏感比较：}增加字符规范化处理逻辑
+	\item \textbf{长度自适应：}支持可变长度字符串比较
+\end{itemize}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+\newpage
+% 附录
+\section*{附录 A\hspace*{20pt} 原始数据记录表}
+\addcontentsline{toc}{section}{附录 A\hspace*{6pt} 原始数据记录表} 
+\thispagestyle{fancy} 
+\begin{figure}[H]\centering
+    %\includegraphics[width=\columnwidth]{LCE-04-场效应管/assets/appendix/预习报告.png}
+\end{figure}
+
+% 附录
+\newpage
+\vspace*{\fill}\begin{center}\Huge{\bfseries 
+    附录 B\hspace*{20pt} 实验预习报告
+}\end{center}\addcontentsline{toc}{section}{附录 B\hspace*{6pt} 实验预习报告} 
+\begin{figure}[H]\centering
+    %\includegraphics[width=\columnwidth]{LCE-04-场效应管/assets/appendix/预习报告.png}
+\end{figure}
+\vspace*{\fill}
+\thispagestyle{fancy} 
+%\includepdf[pages={-}]{LCE-04-场效应管/preview/LCE-04 (preview report).pdf}
+
+
+% 附录
+\section*{附录 C \hspace*{20pt} asm Codes}
+\addcontentsline{toc}{section}{附录 C \hspace*{6pt} asm Codes} 
+\thispagestyle{fancy} 
+%\lstinputlisting{d:/a_RemoteRepo/GH.MatlabCodes/本科课程代码/基础物理实验/Ex_9/Ex_9_analysis_mfile.m}
+
+
+
+\end{document}
+
+% VScode 常用快捷键：
+
+% F2:                       变量重命名
+% Ctrl + Enter:             行中换行
+% Alt + up/down:            上下移行
+% 鼠标中键 + 移动:           快速多光标
+% Shift + Alt + up/down:    上下复制
+% Ctrl + left/right:        左右跳单词
+% Ctrl + Backspace/Delete:  左右删单词    
+% Shift + Delete:           删除此行
+% Ctrl + J:                 打开 VScode 下栏(输出栏)
+% Ctrl + B:                 打开 VScode 左栏(目录栏)
+% Ctrl + `:                 打开 VScode 终端栏
+% Ctrl + 0:                 定位文件
+% Ctrl + Tab:               切换已打开的文件(切标签)
+% Ctrl + Shift + P:         打开全局命令(设置)
+
+% Latex 常用快捷键：
+
+% Ctrl + Alt + J:           由代码定位到PDF
+
+

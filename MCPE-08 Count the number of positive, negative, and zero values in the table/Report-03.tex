@@ -1,0 +1,422 @@
+% 若编译失败，且生成 .synctex(busy) 辅助文件，可能有两个原因：
+% 1. 需要插入的图片不存在：Ctrl + F 搜索 'figure' 将这些代码注释/删除掉即可
+% 2. 路径/文件名含中文或空格：更改路径/文件名即可
+
+% --------------------- 文章宏包及相关设置 --------------------- %
+% >> ------------------ 文章宏包及相关设置 ------------------ << %
+% 设定文章类型与编码格式
+\documentclass[UTF8]{article}		
+\input{../.config/config_for_MCPExperiment.tex}
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% 仅需修改页眉、实验名称、实验日期
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%% 1. 修改页眉内容 %%%%%%%%%%%%%%%%%%
+\rhead{MCPE-08 表中正负零统计与数据排序 (2025.11.26, 徐睿琳)}
+
+\begin{document}
+\begin{center}\large
+    \vspace*{-0.8cm}
+    \noindent{\huge\bfseries《\ \ 微\ \ 机\ \ 原\ \ 理\ \ 实\ \ 验\ \ \ 》\ \ 实\ \ 验\ \ 报\ \ 告 }
+    \\\vspace{0.1cm}
+    \noindent{
+    {\bfseries 
+%
+%%%%%%%%%%%%%%%%%% 2. 修改实验名称 %%%%%%%%%%%%%%%%%%
+    实验名称：\uline{\hspace{2.2cm} 表中正负零统计与数据排序 \hspace{2.2cm}}
+%
+    }\hspace{0.4cm}
+    指导教师：\uline{\hspace{0.8cm}肖山林     \hspace{0.8cm}}
+    }
+    \\\vspace{0.1cm}
+    \noindent
+    {
+    姓名：\uline{\,\,\,徐睿琳\,\,\,}\hspace{0.2cm}
+    学号：\uline{\,\,\,{ 23342107}\,\,\,}\hspace{0.2cm}
+    专业/班级：\uline{\,\,\,{微电子/三班}\,\,\,}\hspace{0.2cm}
+    分组序号：\uline{\,\,\,{A412-A05}\,\,\,}
+    }
+    \\\vspace{0.1cm}
+    \noindent{
+%
+%%%%%%%%%%%%%%%%%% 3. 修改实验日期 %%%%%%%%%%%%%%%%%%
+    实验日期：\uline{\,\,{2025.11.26}\,\,}\hspace{0.2cm}
+%
+    实验地点：\uline{\,\,\,教学楼{ A412}\,\,\,}\hspace{0.2cm}
+    是否调课/补课：\uline{\hspace{0.26cm}否 \hspace{0.26cm}}\hspace{0.2cm}
+    成绩：\uline{\hspace{2cm}}
+    }
+\end{center}
+\vspace{-0.4cm}
+\noindent\rule{\textwidth}{0.075em}   % 分割线
+\vspace{-1.0cm}
+
+% 生成目录
+\setcounter{tocdepth}{3}  % 目录深度为 2（不显示 subsubsection）
+\noindent\tableofcontents\thispagestyle{fancy}   % 显示页码、页眉等
+
+% ------------------------ 文章信息区 ------------------------ %
+% ------------------------ 文章信息区 ------------------------ %
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 下面是正文内容 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{实验内容与设计}
+
+\subsection{数据排列实验}
+
+\subsubsection{流程图}
+
+\begin{figure}[H]\centering
+	\includegraphics[width=1\columnwidth]{MCPE-07 Data Arrangement Experiment/source/pic/外循环流程图.png}
+	\caption{外循环流程图}
+\end{figure}
+
+\begin{figure}[H]\centering
+	\includegraphics[width=1\columnwidth]{MCPE-07 Data Arrangement Experiment/source/pic/内循环流程图.png}
+	\caption{内循环流程图}
+\end{figure}
+
+\subsubsection{代码}
+
+\begin{lstlisting}[language={[x86masm]Assembler}]
+CODE    SEGMENT
+ASSUME  CS:CODE
+
+START:
+MOV     AX, CS
+MOV     DS, AX
+
+
+MOV     BYTE PTR [0200H], 25
+MOV     BYTE PTR [0201H], 46
+MOV     BYTE PTR [0202H], 3
+MOV     BYTE PTR [0203H], 75
+MOV     BYTE PTR [0204H], 5
+MOV     BYTE PTR [0205H], 30
+
+; 调用子程序
+CALL    BUBBLE_SORT
+
+JMP     $
+
+BUBBLE_SORT PROC NEAR
+MOV     CX, 6                   
+CMP     CX, 1                   ; 如果长度<=1
+JBE     SORT_DONE
+
+DEC     CX                      ; 外层循环次数 = 长度-1
+
+OUTER_LOOP:
+MOV     BX, 0                   
+MOV     SI, 0                   
+
+INNER_LOOP:
+; 检查 SI+1 是否越界
+MOV     AX, SI
+INC     AX
+CMP     AX, 6                   ; 比较索引是否超出数组边界
+JAE     END_INNER_LOOP          ; 如果SI+1 >= 数组长度，结束内层循环
+
+; 相邻元素比较
+MOV     AL, [0200H + SI]        ; AL = 当前
+MOV     AH, [0200H + SI + 1]    ; AH = 下一个
+
+CMP     AL, AH
+JBE     NO_SWAP                 ; AL <= AH，不交换
+
+; 交换
+XCHG    AL, AH
+MOV     [0200H + SI], AL        ; 存回当前元素
+MOV     [0200H + SI + 1], AH    ; 存回下一个元素
+MOV     BX, 1                   ; 设置交换标志
+
+NO_SWAP:
+INC     SI                      ; 移动到下一对元素
+JMP     INNER_LOOP
+
+END_INNER_LOOP:
+CMP     BX, 0
+JE      SORT_DONE               ; 整个内循环没发生交换，排序完成
+
+LOOP    OUTER_LOOP              ; 继续下一轮排序
+
+SORT_DONE:
+RET
+BUBBLE_SORT ENDP
+
+CODE    ENDS
+END     START
+\end{lstlisting}
+
+\subsection{统计表中正负数，0}
+
+\subsubsection{流程图}
+
+\begin{figure}[H]\centering
+	\includegraphics[width=1\columnwidth]{MCPE-08 Count the number of positive, negative, and zero values in the table/source/pic/流程图.png}
+	\caption{流程图}
+\end{figure}
+
+\subsubsection{代码}
+
+\begin{lstlisting}[language={[x86masm]Assembler}]
+DATA    SEGMENT
+TABLE   DW  20                      ; 表长
+DW  -10,-9,-8,-7,-6,-5,-4,-3,-2,-1
+DW  0,1,2,3,4,5,6,7,8,9     
+
+NEGNUM  DW  0       ; -
+POSNUM  DW  0       ; + 
+ZERONUM DW  0       ; 0
+DATA    ENDS
+
+CODE    SEGMENT
+ASSUME  CS:CODE, DS:DATA
+
+START:
+
+MOV     AX, DATA
+MOV     DS, AX
+
+; 初始化计数器
+XOR     BX, BX          ; -
+XOR     DX, DX          ; 0
+XOR     AX, AX          ; +
+
+MOV     CX, TABLE       
+MOV     SI, 2           ; 指向第一个数据（跳过一个字）
+
+COUNT_LOOP:
+; 读取当前数字并分类
+CMP     WORD PTR [TABLE+SI], 0
+JL      IS_NEG          ; Jump if Less SF ≠ OF
+JG      IS_POS          ; Jump if Greater ZF=0 AND SF=OF
+
+; 前两个都没跳转就是0
+INC     DX              
+JMP     NEXT
+
+IS_NEG:
+INC     BX              
+JMP     NEXT
+
+IS_POS:
+INC     AX              
+
+NEXT:
+ADD     SI, 2           ; 移动到下一个字
+LOOP    COUNT_LOOP      
+
+MOV     NEGNUM, BX      
+MOV     ZERONUM, DX     
+MOV     POSNUM, AX      
+
+JMP     $
+
+CODE    ENDS
+END     START
+\end{lstlisting}
+
+\section{实验结果}
+
+\subsection{数据排列实验}
+
+\begin{figure}[H]\centering
+	\includegraphics[width=1\columnwidth]{MCPE-08 Count the number of positive, negative, and zero values in the table/source/pic/字符串初始化.png}
+	\caption{排序数值串初始化}
+\end{figure}
+
+\begin{figure}[H]\centering
+	\includegraphics[width=1\columnwidth]{MCPE-08 Count the number of positive, negative, and zero values in the table/source/pic/第一次内循环.png}
+	\caption{第一次内循环}
+\end{figure}
+
+\begin{figure}[H]\centering
+	\includegraphics[width=1\columnwidth]{MCPE-08 Count the number of positive, negative, and zero values in the table/source/pic/最终排序结果.png}
+	\caption{最终排序结果}
+\end{figure}
+
+\subsection{统计表中正负数，0}
+
+\begin{figure}[H]\centering
+	\includegraphics[width=1\columnwidth]{MCPE-08 Count the number of positive, negative, and zero values in the table/source/pic/表初始化.png}
+	\caption{表数据初始化}
+\end{figure}
+
+\vspace*{-3mm}
+\begin{bluebox}
+    初始化表格，第一位是表内数据总数，即20个数据，后面依次是-10...-1,0,1...9，一共10个负数，1个0,9个正数。
+\end{bluebox}
+
+\begin{figure}[H]\centering
+	\includegraphics[width=1\columnwidth]{MCPE-08 Count the number of positive, negative, and zero values in the table/source/pic/MOVCX, TABLE.png}
+	\caption{\texttt{MOV     CX, TABLE}}
+\end{figure}
+
+\vspace*{-3mm}
+\begin{bluebox}
+	将总数设置为循环次数（检查次数）
+\end{bluebox}
+
+\begin{figure}[H]\centering
+	\includegraphics[width=1\columnwidth]{MCPE-08 Count the number of positive, negative, and zero values in the table/source/pic/-20判断.png}
+	\caption{判断 -10 的正负}
+\end{figure}
+
+\vspace*{-3mm}
+\begin{bluebox}
+	使用\texttt{-10-0}，结果为负，触发\texttt{JL}的跳转条件，即\texttt{SF}不等于\texttt{OF}。
+\end{bluebox}
+
+\begin{figure}[H]\centering
+	\includegraphics[width=1\columnwidth]{MCPE-08 Count the number of positive, negative, and zero values in the table/source/pic/1判断.png}
+	\caption{判断 1 的正负}
+\end{figure}
+
+\vspace*{-3mm}
+\begin{bluebox}
+	使用\texttt{1-0}，结果为正，触发\texttt{JG}的跳转条件，即\texttt{SF}等于\texttt{OF}，且ZF不为0。
+\end{bluebox}
+
+\begin{figure}[H]\centering
+	\includegraphics[width=1\columnwidth]{MCPE-08 Count the number of positive, negative, and zero values in the table/source/pic/结果存放.png}
+	\caption{结果存放}
+\end{figure}
+
+\vspace*{-3mm}
+\begin{bluebox}
+	将最终结果存放在指定存储位置。
+\end{bluebox}
+
+\section{思考与总结}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+\subsection{实验总结}
+
+本次实验完成了两个汇编程序的设计与实现：
+
+\begin{enumerate}
+    \item \textbf{冒泡排序算法}：采用双层循环结构，外层控制排序轮数，内层进行相邻元素比较与交换。通过设置交换标志\texttt{BX}优化算法，当某轮无交换发生时提前结束排序。
+    
+    \item \textbf{正负零统计}：利用\texttt{CMP}指令与条件跳转指令（\texttt{JL}、\texttt{JG}）实现数据分类。\texttt{JL}判断负数（\texttt{SF≠OF}），\texttt{JG}判断正数（\texttt{ZF=0}且\texttt{SF=OF}），两者均不满足则为零。
+\end{enumerate}
+
+\subsection{思考}
+
+\begin{enumerate}
+    \item \textbf{有符号数与无符号数的区别}：本实验使用\texttt{JL/JG}处理有符号数，若处理无符号数应使用\texttt{JB/JA}指令。
+    
+    \item \textbf{寻址方式}：实验中使用\texttt{[TABLE+SI]}的变址寻址方式遍历数组，需注意字类型数据每次偏移量为2。
+    
+    \item \textbf{标志位的理解}：条件跳转依赖标志寄存器状态，深入理解\texttt{SF}、\texttt{OF}、\texttt{ZF}等标志位对编写正确的分支程序至关重要。
+    
+    \item \textbf{程序优化}：冒泡排序中引入交换标志可减少不必要的循环次数，体现了算法优化思想。
+\end{enumerate}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+\newpage
+% 附录
+\section*{附录 A\hspace*{20pt} 原始数据记录表}
+\addcontentsline{toc}{section}{附录 A\hspace*{6pt} 原始数据记录表} 
+\thispagestyle{fancy} 
+\begin{figure}[H]\centering
+    %\includegraphics[width=\columnwidth]{LCE-04-场效应管/assets/appendix/预习报告.png}
+\end{figure}
+
+% 附录
+\newpage
+\vspace*{\fill}\begin{center}\Huge{\bfseries 
+    附录 B\hspace*{20pt} 实验预习报告
+}\end{center}\addcontentsline{toc}{section}{附录 B\hspace*{6pt} 实验预习报告} 
+\begin{figure}[H]\centering
+    %\includegraphics[width=\columnwidth]{LCE-04-场效应管/assets/appendix/预习报告.png}
+\end{figure}
+\vspace*{\fill}
+\thispagestyle{fancy} 
+%\includepdf[pages={-}]{LCE-04-场效应管/preview/LCE-04 (preview report).pdf}
+
+
+% 附录
+\section*{附录 C \hspace*{20pt} asm Codes}
+\addcontentsline{toc}{section}{附录 C \hspace*{6pt} asm Codes} 
+\thispagestyle{fancy} 
+%\lstinputlisting{d:/a_RemoteRepo/GH.MatlabCodes/本科课程代码/基础物理实验/Ex_9/Ex_9_analysis_mfile.m}
+
+
+
+\end{document}
+
+% VScode 常用快捷键：
+
+% F2:                       变量重命名
+% Ctrl + Enter:             行中换行
+% Alt + up/down:            上下移行
+% 鼠标中键 + 移动:           快速多光标
+% Shift + Alt + up/down:    上下复制
+% Ctrl + left/right:        左右跳单词
+% Ctrl + Backspace/Delete:  左右删单词    
+% Shift + Delete:           删除此行
+% Ctrl + J:                 打开 VScode 下栏(输出栏)
+% Ctrl + B:                 打开 VScode 左栏(目录栏)
+% Ctrl + `:                 打开 VScode 终端栏
+% Ctrl + 0:                 定位文件
+% Ctrl + Tab:               切换已打开的文件(切标签)
+% Ctrl + Shift + P:         打开全局命令(设置)
+
+% Latex 常用快捷键：
+
+% Ctrl + Alt + J:           由代码定位到PDF
+
+

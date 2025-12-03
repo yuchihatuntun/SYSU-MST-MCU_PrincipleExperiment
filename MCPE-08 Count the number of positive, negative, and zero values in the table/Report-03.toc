@@ -1,0 +1,16 @@
+\contentsline {section}{\numberline {1}实验内容与设计}{1}{section.1}%
+\contentsline {subsection}{\numberline {1.1}数据排列实验}{1}{subsection.1.1}%
+\contentsline {subsubsection}{\numberline {1.1.1}流程图}{1}{subsubsection.1.1.1}%
+\contentsline {subsubsection}{\numberline {1.1.2}代码}{2}{subsubsection.1.1.2}%
+\contentsline {subsection}{\numberline {1.2}统计表中正负数，0}{3}{subsection.1.2}%
+\contentsline {subsubsection}{\numberline {1.2.1}流程图}{3}{subsubsection.1.2.1}%
+\contentsline {subsubsection}{\numberline {1.2.2}代码}{3}{subsubsection.1.2.2}%
+\contentsline {section}{\numberline {2}实验结果}{5}{section.2}%
+\contentsline {subsection}{\numberline {2.1}数据排列实验}{5}{subsection.2.1}%
+\contentsline {subsection}{\numberline {2.2}统计表中正负数，0}{6}{subsection.2.2}%
+\contentsline {section}{\numberline {3}思考与总结}{8}{section.3}%
+\contentsline {subsection}{\numberline {3.1}实验总结}{8}{subsection.3.1}%
+\contentsline {subsection}{\numberline {3.2}思考}{9}{subsection.3.2}%
+\contentsline {section}{附录 A\hspace *{6pt} 原始数据记录表}{10}{Item.6}%
+\contentsline {section}{附录 B\hspace *{6pt} 实验预习报告}{11}{figure.caption.12}%
+\contentsline {section}{附录 C \hspace *{6pt} asm Codes}{11}{figure.caption.13}%

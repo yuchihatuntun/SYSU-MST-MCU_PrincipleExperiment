@@ -1,0 +1,21 @@
+CODE    SEGMENT ; 
+        ASSUME CS:CODE
+;地址定义
+IN245	EQU 0d000H
+OUT373  EQU 8000H
+
+ ;开始         
+START:  
+		;读取245 B0-B7数据到al寄存器
+		MOV DX,IN245
+		IN  AL,DX
+		IN  AL,DX
+		IN  AL,DX
+		;373输出al寄存器值
+		MOV DX,OUT373
+		OUT DX,AL
+		;跳转到开始
+		JMP START
+     
+CODE	ENDS
+        END START

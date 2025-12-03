@@ -5,9 +5,9 @@ Name                     	Offset    	Size      	Type      	Segment
 CODE                     	00000     	-5        	SEGMENT   	(ITSELF)  
 START                    	00000     	-1        	LABEL     	CODE      
 MO_T                     	0000E     	-1        	LABEL     	CODE      
-EQUA                     	00010     	-1        	LABEL     	CODE      
-LESS                     	00012     	-1        	LABEL     	CODE      
+EQUA                     	00013     	-1        	LABEL     	CODE      
+LESS                     	00018     	-1        	LABEL     	CODE      
 ===================================================================================================
-[ 2025-11-19  --  9:09:48 ] 
+[ 2025-11-19  --  15:13:35 ] 
 < END >
  

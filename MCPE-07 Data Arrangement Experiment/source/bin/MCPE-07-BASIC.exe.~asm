@@ -1,0 +1,81 @@
+;==============================================
+; 数据排列实验 - 冒泡排序算法
+; 对内存0200H-0205H的6个字节进行升序排序
+; 支持任意长度数组和边界检查
+;==============================================
+
+CODE    SEGMENT
+ASSUME  CS:CODE
+
+START:
+MOV     AX, CS
+MOV     DS, AX
+
+
+MOV     BYTE PTR [0200H], 25
+MOV     BYTE PTR [0201H], 46
+MOV     BYTE PTR [0202H], 3
+MOV     BYTE PTR [0203H], 75
+MOV     BYTE PTR [0204H], 5
+MOV     BYTE PTR [0205H], 30
+
+; 调用子程序
+CALL    BUBBLE_SORT
+
+JMP     $
+
+;==============================================
+; 冒泡排序
+; 输入：DS:[0200H]开始的6个字节
+; 输出：原地排序后的6个字节
+;==============================================
+BUBBLE_SORT PROC NEAR
+MOV     CX, 6                   ; 数组长度
+CMP     CX, 1                   ; 如果长度<=1，直接返回
+JBE     SORT_DONE
+
+DEC     CX                      ; 外层循环次数 = 长度-1
+
+OUTER_LOOP:
+MOV     BX, 0                   ; 交换标志：0=未交换
+MOV     SI, 0                   ; 内层循环索引从0开始
+
+INNER_LOOP:
+; 边界检查：SI+1 是否越界
+MOV     AX, SI
+INC     AX
+CMP     AX, 6                   ; 比较索引是否超出数组边界
+JAE     END_INNER_LOOP          ; 如果SI+1 >= 数组长度，结束内层循环
+
+; 读取相邻元素进行比较
+MOV     AL, [0200H + SI]        ; AL = 当前元素
+MOV     AH, [0200H + SI + 1]    ; AH = 下一个元素
+
+; 比较并决定是否交换
+CMP     AL, AH
+JBE     NO_SWAP                 ; 如果AL <= AH，不需要交换（升序排序）
+
+; 执行交换
+XCHG    AL, AH
+MOV     [0200H + SI], AL        ; 存回当前元素
+MOV     [0200H + SI + 1], AH    ; 存回下一个元素
+MOV     BX, 1                   ; 设置交换标志
+
+NO_SWAP:
+INC     SI                      ; 移动到下一对元素
+JMP     INNER_LOOP
+
+END_INNER_LOOP:
+; 检查是否发生交换
+CMP     BX, 0
+JE      SORT_DONE               ; 本轮无交换，排序完成
+
+LOOP    OUTER_LOOP              ; 继续下一轮排序
+
+SORT_DONE:
+RET
+BUBBLE_SORT ENDP
+
+CODE    ENDS
+END     START
+
