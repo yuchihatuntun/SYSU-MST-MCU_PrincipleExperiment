@@ -1,0 +1,528 @@
+% 若编译失败，且生成 .synctex(busy) 辅助文件，可能有两个原因：
+% 1. 需要插入的图片不存在：Ctrl + F 搜索 'figure' 将这些代码注释/删除掉即可
+% 2. 路径/文件名含中文或空格：更改路径/文件名即可
+
+% --------------------- 文章宏包及相关设置 --------------------- %
+% >> ------------------ 文章宏包及相关设置 ------------------ << %
+% 设定文章类型与编码格式
+\documentclass[UTF8]{article}		
+\input{../.config/config_for_MCPExperiment.tex}
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% 仅需修改页眉、实验名称、实验日期
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%% 1. 修改页眉内容 %%%%%%%%%%%%%%%%%%
+\rhead{MCP-04 I/O 接口实验 (2025.12.08, 徐睿琳)}
+
+% 开始编辑文章
+\begin{document}
+\begin{center}\large
+    \vspace*{-0.8cm}
+    \noindent{\huge\bfseries《\ \ 微\ \ 机\ \ 原\ \ 理\ \ 实\ \ 验\ \ \ 》\ \ 实\ \ 验\ \ 报\ \ 告 }
+    \\\vspace{0.1cm}
+    \noindent{
+    {\bfseries 
+%
+%%%%%%%%%%%%%%%%%% 2. 修改实验名称 %%%%%%%%%%%%%%%%%%
+    实验名称：\uline{\hspace{2.2cm} I/O 接口实验 \hspace{2.2cm}}
+%
+    }\hspace{0.4cm}
+    指导教师：\uline{\hspace{0.8cm}肖山林     \hspace{0.8cm}}
+    }
+    \\\vspace{0.1cm}
+    \noindent
+    {
+    姓名：\uline{\,\,\,徐睿琳\,\,\,}\hspace{0.2cm}
+    学号：\uline{\,\,\,{ 23342107}\,\,\,}\hspace{0.2cm}
+    专业/班级：\uline{\,\,\,{微电子/三班}\,\,\,}\hspace{0.2cm}
+    分组序号：\uline{\,\,\,{A412-A05}\,\,\,}
+    }
+    \\\vspace{0.1cm}
+    \noindent{
+%
+%%%%%%%%%%%%%%%%%% 3. 修改实验日期 %%%%%%%%%%%%%%%%%%
+    实验日期：\uline{\,\,{2025.12.08}\,\,}\hspace{0.2cm}
+%
+    实验地点：\uline{\,\,\,教学楼{ A412}\,\,\,}\hspace{0.2cm}
+    是否调课/补课：\uline{\hspace{0.26cm}否 \hspace{0.26cm}}\hspace{0.2cm}
+    成绩：\uline{\hspace{2cm}}
+    }
+\end{center}
+\vspace{-0.4cm}
+\noindent\rule{\textwidth}{0.075em}   % 分割线
+\vspace{-1.0cm}
+
+% 生成目录
+\setcounter{tocdepth}{3}  % 目录深度为 2（不显示 subsubsection）
+\noindent\tableofcontents\thispagestyle{fancy}   % 显示页码、页眉等
+
+% ------------------------ 文章信息区 ------------------------ %
+% ------------------------ 文章信息区 ------------------------ %
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 下面是正文内容 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{实验内容与设计}
+
+\subsection{I/O 端口控制与流水灯}
+
+\subsubsection{电路原理图与代码流程}
+
+\begin{figure}[H]\centering
+	\includegraphics[width=1\columnwidth]{MCPE-09/assets/流水灯电路原理图.png}
+	\caption{流水灯电路原理图}
+\end{figure}
+
+\textbf{输入电路：}
+
+\begin{figure}[H]\centering
+	\includegraphics[width=0.5\columnwidth]{MCPE-09/assets/流水灯输入电路.png}
+	\caption{流水灯输入电路}
+\end{figure}
+
+实验选用74HC245作为输入缓冲器，作用是将8路开关的机械信号隔离并缓冲后送入数据总线。开关一侧通过上拉电阻（\texttt{RESPACK-8}）接高电平，另一侧接74HC245的B端口；当CPU从地址D000H读取数据时，片选信号使能74HC245，开关状态经缓冲后送至数据总线。
+
+\textbf{输出电路：}
+
+\begin{figure}[H]\centering
+	\includegraphics[width=0.5\columnwidth]{MCPE-09/assets/流水灯输出电路.png}
+	\caption{流水灯输出电路}
+\end{figure}
+
+实验选用74HC373作为输出锁存器，作用是将8086数据总线上短暂的数据信号锁存并稳定输出至LED。当CPU向地址8000H写入数据时，地址译码电路（由74HC02或非门实现）产生一个正脉冲，使74HC373的锁存使能端（LE）有效，此时数据总线上的8位数据被锁存至输出端，驱动LED显示。该设计确保了在CPU执行其他任务时，LED状态仍能保持稳定。
+
+\begin{lstlisting}[language={[x86masm]Assembler}]
+    ; 功能：从输入端口（开关）读取数据，立即输出到输出端口（8 个 LED 灯）
+
+    CODE SEGMENT
+        ASSUME CS:CODE
+        
+        ; 端口地址定义
+        IN245  EQU  0D000H    ; 输入端口地址
+        OUT373 EQU  8000H     ; 输出端口地址
+
+    START:
+        MOV DX, IN245         ; 设置输入端口地址
+        IN AL, DX             ; 从输入端口读取数据到AL寄存器
+        
+        MOV DX, OUT373        ; 设置输出端口地址
+        OUT DX, AL            ; 将AL寄存器数据输出到端口
+        
+        JMP START             ; 循环执行
+
+    CODE ENDS
+        END START             ; 程序入口点为START
+\end{lstlisting}
+
+\subsection{LCD字符显示器控制}
+
+\subsubsection{电路原理图与代码逐行讲解}
+
+\begin{figure}[H]\centering
+	\includegraphics[width=1\columnwidth]{MCPE-09/assets/LCD显示屏电路原理图.png}
+	\caption{LCD显示屏电路原理图}
+\end{figure}
+
+\begin{lstlisting}[language={[x86masm]Assembler}]
+    ; 功能: 8086控制LCD显示器显示字符串
+    CODE    SEGMENT 'CODE'                     ; 代码段定义
+            ASSUME CS:CODE, DS:DATA, SS:STACK  ; 段寄存器关联
+
+    ; 地址由74HC138译码器产生
+    LCD_CMD_WR  EQU 9000H     ; LCD命令写入端口 (对应U5-74HC373)
+    LCD_DATA_WR EQU 9002H     ; LCD数据写入端口
+    LCD_BUSY_RD EQU 9004H     ; LCD忙状态读取端口
+    LCD_DATA_RD EQU 9006H     ; LCD数据读取端口
+
+    START:
+            MOV AX, DATA      ; 加载数据段地址
+            MOV DS, AX        ; 设置DS指向数据段
+            MOV AX, STACK     ; 加载堆栈段地址
+            MOV SS, AX        ; 设置SS指向堆栈段
+            MOV AX, TOP       ; 获取堆栈顶部地址
+            MOV SP, AX        ; 设置堆栈指针SP
+            
+            ; IN AX, DX  
+            
+
+            ; 参考手册初始化流程
+            MOV AX, 30H       ; 这条指令没找到，可能是笔误
+            CALL WRCMD        ; 写入命令
+            
+            MOV AX, 38H       ; 8位接口, 2行显示
+            CALL WRCMD
+            
+            MOV AX, 0CH       ; 开显示, 关光标, 不闪烁
+            CALL WRCMD
+            
+            MOV AX, 01H       ; 清屏
+            CALL WRCMD
+            
+            MOV AX, 06H       ; 地址自动递增, 显示不移动
+            CALL WRCMD
+            
+    MAINLOOP:
+            ; 第一行字符串
+            MOV AX, 80H       ; 设置DDRAM地址: 第一行首地址(80H)
+            MOV CX, 16        ; 16个字符
+            LEA DI, str1      
+            CALL WRSTR        
+            
+            ; 第二行字符串
+            MOV AX, 0C0H      ; 设置DDRAM地址: 第二行首地址(C0H)
+            MOV CX, 16        ; 16个字符
+            LEA DI, str2      
+            CALL WRSTR        
+            
+            ; 清屏并重新开始
+            MOV AX, 01H       ; 清屏
+            CALL WRCMD
+            JMP MAINLOOP      ; 无限循环
+
+    ; 功能: 将命令写入LCD命令寄存器
+    WRCMD   PROC
+            MOV DX, LCD_CMD_WR  ; DX指向命令端口
+            OUT DX, AX          ; 输出命令到LCD
+            RET                 ; 返回调用者
+    WRCMD   ENDP
+
+    ; 功能: 在当前光标位置写入字符串
+    ; 输入参数: AX = DDRAM地址(行地址)
+    ;          CX = 字符数
+    ;          DI = 字符串首地址
+    WRSTR   PROC
+            CALL WRCMD          ; 1. 设置显示位置(行地址)
+            MOV DX, LCD_DATA_WR ; 2. DX指向LCD数据端口
+            
+    WRBIT:  MOV AL, [DI]        ; 3. 从内存读取一个字符
+            OUT DX, AL          ; 4. 输出字符到LCD
+            INC DI              ; 5. 指向下一个字符
+            LOOP WRBIT          ; 6. 循环直到CX=0
+            
+            RET                 ; 返回调用者
+    WRSTR   ENDP
+
+    CODE    ENDS
+
+    STACK   SEGMENT 'STACK'
+            STA     DB 100 DUP(?)   ; 定义100字节堆栈空间
+            TOP     EQU LENGTH STA  ; 堆栈顶部地址
+    STACK   ENDS
+
+    DATA    SEGMENT 'DATA'
+            str1    DB ' FENGBIAO EDU  '   ; 第一行显示内容
+            str2    DB ' !A M A Z I N G! ' ; 第二行显示内容
+    DATA    ENDS
+
+            END START
+\end{lstlisting}
+
+
+
+\section{实验结果}
+
+\subsection{I/O 端口控制与流水灯}
+
+\begin{figure}[H]\centering
+	\begin{subfigure}[b]{0.5\columnwidth}\centering
+		\includegraphics[height=170pt]{MCPE-09/assets/流水灯软件结果01.png}
+		\caption{流水灯软件结果01}
+	\end{subfigure}\hfill
+	\begin{subfigure}[b]{0.5\columnwidth}\centering
+		\includegraphics[height=170pt]{MCPE-09/assets/流水灯软件结果02.png}
+		\caption{流水灯软件结果02}
+	\end{subfigure}
+	\caption{流水灯软件结果}
+\end{figure}
+
+\begin{figure}[H]\centering
+	\begin{subfigure}[b]{0.5\columnwidth}\centering
+		\includegraphics[height=170pt]{MCPE-09/assets/流水灯实物结果 01.jpg}
+		\caption{流水灯实物结果01}
+	\end{subfigure}\hfill
+	\begin{subfigure}[b]{0.5\columnwidth}\centering
+		\includegraphics[height=170pt]{MCPE-09/assets/流水灯实物结果 02.jpg}
+		\caption{流水灯实物结果02}
+	\end{subfigure}
+	\caption{流水灯实物结果}
+\end{figure}
+
+\subsection{LCD字符显示器控制}
+
+\begin{figure}[H]\centering
+	\includegraphics[width=\columnwidth]{MCPE-09/assets/LCD软件结果.png}
+	\caption{LCD软件结果}
+\end{figure}
+
+\begin{figure}[H]\centering
+	\includegraphics[width=0.3\columnwidth]{MCPE-09/assets/LCD 实物结果.jpg}
+	\caption{LCD实物结果}
+\end{figure}
+
+\section{思考与总结}
+
+\subsection{扩展与鲁棒性提升}
+
+\subsubsection{硬件扩展方案}
+
+\begin{enumerate}
+    \item \textbf{输入防抖电路}：在拨码开关与74HC245之间增加RC滤波电路，硬件消除机械抖动
+    \item \textbf{输出驱动增强}：在74HC373输出端增加晶体管或ULN2003驱动芯片，提高LED驱动能力
+    \item \textbf{多路复用扩展}：通过74HC138扩展更多I/O端口，实现更多外设控制
+\end{enumerate}
+
+\subsubsection{软件鲁棒性改进}
+
+通过软件算法提高系统的稳定性和可靠性，具体可行代码见附录A。
+
+\subsubsection{故障诊断与保护机制}
+
+\begin{enumerate}
+    \item \textbf{输入校验}：增加输入范围检查，过滤非法状态
+    \item \textbf{看门狗定时器}：添加硬件或软件看门狗，防止程序跑飞
+    \item \textbf{输出保护}：限制输出变化频率，防止LED过流
+    \item \textbf{状态反馈}：通过输入端口回读输出状态，实现闭环控制
+\end{enumerate}
+
+\subsection{思考与展望}
+
+通过本次实验，我们不仅掌握了8086微处理器的I/O编程技术，更理解了硬件接口设计的基本原则。在未来的系统设计中，应综合考虑软硬件协同、可靠性设计、扩展性规划等多方面因素，设计出更加稳定、高效、实用的嵌入式系统。
+
+
+% \subsection*{4.1 \ \ }
+% \subsection*{4.2 \ \ }
+% \subsection*{4.3 \ \ }
+% \subsection*{4.4 \ \ }
+% \subsection*{4.5 \ \ }
+% \subsection*{4.6 \ \ }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+\newpage
+% 附录
+\section*{附录 A\hspace*{20pt} 增强型I/O控制程序}
+\addcontentsline{toc}{section}{附录 A\hspace*{6pt} 增强型I/O控制程序} 
+\thispagestyle{fancy} 
+
+\begin{lstlisting}[language={[x86masm]Assembler}, caption={增强型I/O控制程序}]
+
+IN_PORT     EQU 0D000H
+OUT_PORT    EQU 8000H
+DEBOUNCE_CNT EQU 5
+
+DATA    SEGMENT
+    switch_state DB 0
+    led_pattern  DB 0
+    debounce_buf DB 5 DUP(0)
+DATA    ENDS
+
+CODE    SEGMENT
+    ASSUME CS:CODE, DS:DATA
+    
+START:
+    MOV AX, DATA
+    MOV DS, AX
+    MOV switch_state, 0
+    MOV led_pattern, 01H
+    
+MAIN_LOOP:
+    CALL READ_SWITCH_DEBOUNCED
+    MOV AL, switch_state
+    AND AL, 0FH
+    CALL SET_LED_MODE
+    MOV AL, led_pattern
+    MOV DX, OUT_PORT
+    OUT DX, AL
+    MOV AL, switch_state
+    SHR AL, 4
+    CALL ADJUST_DELAY
+    JMP MAIN_LOOP
+
+READ_SWITCH_DEBOUNCED PROC
+    PUSH CX
+    PUSH SI
+    PUSH AX
+    MOV CX, DEBOUNCE_CNT
+    MOV SI, 0
+SAMPLE_LOOP:
+    MOV DX, IN_PORT
+    IN AL, DX
+    MOV debounce_buf[SI], AL
+    INC SI
+    CALL SHORT_DELAY
+    LOOP SAMPLE_LOOP
+    CALL MAJORITY_VOTE
+    POP AX
+    POP SI
+    POP CX
+    RET
+READ_SWITCH_DEBOUNCED ENDP
+
+MAJORITY_VOTE PROC
+    PUSH BX
+    PUSH CX
+    PUSH DX
+    MOV CX, 8
+    MOV BX, 0
+BIT_LOOP:
+    MOV DL, 0
+    MOV SI, 0
+COUNT_LOOP:
+    MOV AL, debounce_buf[SI]
+    SHR AL, CL
+    ADC DL, 0
+    INC SI
+    CMP SI, DEBOUNCE_CNT
+    JL COUNT_LOOP
+    CMP DL, DEBOUNCE_CNT/2 + 1
+    JB BIT_ZERO
+    MOV AL, 1
+    SHL AL, CL
+    OR switch_state, AL
+    JMP NEXT_BIT
+BIT_ZERO:
+    MOV AL, 0FEH
+    ROL AL, CL
+    AND switch_state, AL
+NEXT_BIT:
+    INC BL
+    CMP BL, 8
+    JL BIT_LOOP
+    POP DX
+    POP CX
+    POP BX
+    RET
+MAJORITY_VOTE ENDP
+
+SET_LED_MODE PROC
+    CMP AL, 0
+    JNE MODE1
+    MOV led_pattern, 0FFH
+    RET
+MODE1:
+    CMP AL, 1
+    JNE MODE2
+    MOV led_pattern, 00H
+    RET
+MODE2:
+    CMP AL, 2
+    JNE MODE3
+    MOV AL, led_pattern
+    ROL AL, 1
+    MOV led_pattern, AL
+    RET
+MODE3:
+    MOV led_pattern, AL
+    RET
+SET_LED_MODE ENDP
+
+ADJUST_DELAY PROC
+    PUSH CX
+    PUSH BX
+    INC AL
+    MOV BL, AL
+    MOV BH, 0
+DELAY_OUTER:
+    MOV CX, 0FFFFH
+DELAY_INNER:
+    LOOP DELAY_INNER
+    DEC BX
+    JNZ DELAY_OUTER
+    POP BX
+    POP CX
+    RET
+ADJUST_DELAY ENDP
+
+SHORT_DELAY PROC
+    PUSH CX
+    MOV CX, 0FFFH
+DELAY_LOOP:
+    LOOP DELAY_LOOP
+    POP CX
+    RET
+SHORT_DELAY ENDP
+
+CODE    ENDS
+    END START
+\end{lstlisting}
+
+\end{document}
+
+% VScode 常用快捷键：
+
+% F2:                       变量重命名
+% Ctrl + Enter:             行中换行
+% Alt + up/down:            上下移行
+% 鼠标中键 + 移动:           快速多光标
+% Shift + Alt + up/down:    上下复制
+% Ctrl + left/right:        左右跳单词
+% Ctrl + Backspace/Delete:  左右删单词    
+% Shift + Delete:           删除此行
+% Ctrl + J:                 打开 VScode 下栏(输出栏)
+% Ctrl + B:                 打开 VScode 左栏(目录栏)
+% Ctrl + `:                 打开 VScode 终端栏
+% Ctrl + 0:                 定位文件
+% Ctrl + Tab:               切换已打开的文件(切标签)
+% Ctrl + Shift + P:         打开全局命令(设置)
+
+% Latex 常用快捷键：
+
+% Ctrl + Alt + J:           由代码定位到PDF
+
+
