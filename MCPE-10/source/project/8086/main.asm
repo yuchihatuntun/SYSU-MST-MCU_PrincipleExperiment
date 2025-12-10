@@ -1,0 +1,25 @@
+CODE    SEGMENT ; 
+        ASSUME CS:CODE
+;地址定义		
+IOCON	EQU 08006H;控制口	
+IOA     EQU 08000H;PA
+IOB     EQU 08002H;PB
+IOC     EQU 08004H;PC
+;开始
+START:
+		;设置8255模式 （B.C输出，A输入）
+		MOV AL,90H
+		MOV DX,IOCON
+		OUT DX,AL
+START1: 
+		;读取A口数据存入al寄存器中
+		MOV AL,0
+		MOV DX,IOA
+		IN AL,DX
+		;AL寄存器数据送到B口上
+		MOV DX,IOB
+		OUT DX,AL
+		;跳转到开始
+		JMP START1
+CODE    ENDS
+        END START

@@ -1,0 +1,23 @@
+CODE	SEGMENT 
+		ASSUME CS:CODE               
+;地址定义	
+TCONTRO   EQU 0A006H
+TCON0     EQU 0A000H
+TCON1     EQU 0A002H
+TCON2     EQU 0A004H
+;开始
+START:
+		;设置计数器0，只写计算值低8位，方式3，二进制计数
+		MOV DX,TCONTRO
+		MOV AL,16H  
+		OUT DX,AL
+		;时钟为1MHZ ，计数时间=1us*20 =20 us  输出频率50KHZ
+		MOV DX,TCON0
+		MOV AX,20   
+		OUT DX,AL
+		;结束
+		JMP $
+		
+CODE	ENDS
+		END START
+

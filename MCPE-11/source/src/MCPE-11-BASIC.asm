@@ -1,0 +1,31 @@
+CODE	SEGMENT                     ; 定义代码段开始
+		ASSUME CS:CODE               ; 告知汇编器CS寄存器指向CODE段
+                
+; 地址定义	
+TCONTRO   EQU 0A006H               ; 8253控制寄存器地址
+TCON0     EQU 0A000H               ; 计数器0端口地址
+TCON1     EQU 0A002H               ; 计数器1端口地址
+TCON2     EQU 0A004H               ; 计数器2端口地址
+
+; 程序开始
+START:
+		; 设置计数器0，只写计算值低8位，方式3，二进制计数
+		MOV DX,TCONTRO             ; DX←控制寄存器地址0A006H
+		MOV AL,16H                 ; AL←控制字16H(00010110B)
+		; 控制字格式详解：
+		; 00: 选择计数器0
+		; 01: 只读写低字节
+		; 011: 工作方式3（方波发生器）
+		; 0: 二进制计数
+		OUT DX,AL                  ; 将控制字写入8253控制寄存器
+		
+		; 时钟为1MHZ，计数时间=1us*20=20us，输出频率50KHZ
+		MOV DX,TCON0               ; DX←计数器0地址0A000H
+		MOV AX,20                  ; AX←计数值20（十进制）
+		OUT DX,AL                  ; 将计数值低字节写入计数器0
+		
+		; 结束 - 无限循环
+		JMP $                      ; 无限循环，程序停留在此处
+		
+CODE	ENDS                      ; 代码段结束
+		END START                 ; 程序结束，入口点为START

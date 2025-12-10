@@ -1,0 +1,122 @@
+CODE    SEGMENT                     ; 定义代码段开始
+ASSUME DS:DATA,CS:CODE     ; 指定DS指向DATA段，CS指向CODE段
+
+; 地址定义
+CS8251R  EQU 0F080H              ; 8251状态寄存器地址（只读）
+CS8251D  EQU 0F000H              ; 8251数据寄存器地址
+CS8251C  EQU 0F002H              ; 8251控制/命令寄存器地址
+
+TCONTRO  EQU 0A006H              ; 8253控制寄存器地址
+TCON0    EQU 0A000H              ; 8253计数器0端口地址
+
+; 主程序开始
+START:
+; 设置DS指向数据段
+MOV AX,DATA               ; 将DATA段地址存入AX
+MOV DS,AX                 ; 将AX值赋给DS，使DS指向数据段
+
+; 8253初始化：设置通道0，只写低8位，方式3，二进制计数
+MOV DX,TCONTRO            ; DX←8253控制寄存器地址
+MOV AL,16H                ; 控制字：16H=00010110B
+; 00:选择计数器0
+; 01:只读写低字节
+; 011:工作方式3（方波发生器）
+; 0:二进制计数
+OUT DX,AL                 ; 写入8253控制寄存器
+
+; 设置计数器0初值为52，输出频率=1MHz/52≈19.23kHz
+MOV DX,TCON0              ; DX←8253计数器0地址
+MOV AX,52                 ; 计数初值52
+OUT DX,AL                 ; 写入计数初值（只写低字节）
+
+; 8251初始化：读取状态寄存器（清除可能的状态）
+MOV DX, CS8251R           ; DX←8251状态寄存器地址
+IN AL,DX                  ; 读一次状态寄存器
+NOP                       ; 空操作，短暂延时
+MOV DX, CS8251R           ; 再次读取状态寄存器
+IN AL,DX                  ; 确保状态寄存器稳定
+NOP                       ; 空操作
+
+; 设置8251模式寄存器：
+; 异步模式，1个停止位，无校验，8位数据，波特率因子1
+MOV DX, CS8251C           ; DX←8251控制/命令寄存器地址
+MOV AL, 01001101b         ; 模式字：4DH=01001101B
+; 01:波特率因子1
+; 00:无校验
+; 11:字符长度8位
+; 01:1个停止位
+OUT DX, AL                ; 写入模式寄存器
+
+; 设置8251控制寄存器：
+; 使能错误标志复位，允许接收，允许发送
+MOV AL, 00010101b         ; 命令字：15H=00010101B
+; 0:不发送中止字符
+; 0:RTS无效
+; 0:错误标志复位
+; 1:允许接收
+; 0:DTR无效
+; 1:允许发送
+; 0:不发送空白字符
+; 1:内部复位
+OUT DX, AL                ; 写入控制寄存器
+
+START4:
+; 发送数据：字节数存入CX，字符串首地址存入DI
+MOV CX,22                 ; 设置发送字节数22
+LEA DI,STR1               ; DI指向字符串"Fengbiao Educational!"首地址
+
+; 发送一个字节数据
+SEND:
+WaitTXD:
+; 等待发送缓冲区空（TxRDY=1）
+MOV DX,CS8251C            ; DX←8251控制/状态寄存器地址
+IN AL, DX                 ; 读取状态寄存器
+TEST AL, 1                ; 测试第0位（TxRDY-发送准备就绪位）
+JZ WaitTXD                ; 如果为0，继续等待
+
+; 发送一个字节数据
+MOV AL, [DI]              ; 从内存取一个字符到AL
+MOV DX, CS8251D           ; DX←8251数据寄存器地址
+OUT DX, AL                ; 发送字符
+
+; 小延时，确保字符发送完成
+PUSH CX                    ; 保存CX（外层循环计数器）
+MOV CX,2FH                 ; 设置延时循环次数2FH=47
+LOOP $                    ; 空循环延时
+POP CX                     ; 恢复CX
+
+; 指向下一个字节
+INC DI                     ; DI加1，指向下一个字符
+
+; 完成一个字节发送，循环直到所有字节发送完毕
+LOOP SEND                  ; CX减1，不为0则跳转到SEND继续发送
+
+; 完成所有字节发送，重新开始发送
+JMP START4                 ; 跳转到START4，重新发送字符串
+
+; 接收子程序（程序中未调用，但定义了）
+Receive:
+MOV DX, CS8251C           ; 准备读取状态
+WaitRXD:
+IN AL, DX                 ; 读取状态寄存器
+TEST AL, 2                ; 测试第1位（RxRDY-接收准备就绪位）
+JE WaitRXD                ; 如果为0，继续等待
+MOV DX, CS8251D           ; 准备读取数据
+IN AL, DX                 ; 从8251数据寄存器读取接收到的数据
+MOV BH, AL                ; 将接收到的数据存入BH
+
+JMP START                 ; 跳回START，重新初始化
+
+CODE      ENDS                  ; 代码段结束
+
+; 数据段定义
+DATA    SEGMENT
+STR1 db 'Fengbiao Educational!' ; 要发送的字符串，21个字符
+str2 db 0dh                     ; 回车符（程序中未使用）
+DATA    ENDS                    ; 数据段结束
+
+END START                       ; 程序结束，入口点为START
+
+
+
+; [SOURCE]: E:\Github Repos\SYSU-MST-MCU_PrincipleExperiment\MCPE-12\source\src\MCPE-12-BASIC.asm

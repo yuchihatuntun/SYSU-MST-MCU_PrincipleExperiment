@@ -1,0 +1,175 @@
+EMU8086 GENERATED LISTING. MACHINE CODE <- SOURCE.
+ 
+MCPE-12-BASIC.exe -- emu8086 assembler version: 4.08  
+ 
+[ 2025-12-10  --  11:17:02 ] 
+ 
+===================================================================================================
+[LINE]     LOC: MACHINE CODE                          SOURCE
+===================================================================================================
+ 
+[   1]        :                                       CODE	SEGMENT                     ; 定义代码段开始
+[   2]        :                                       		ASSUME DS:DATA,CS:CODE     ; 指定DS指向DATA段，CS指向CODE段
+[   3]        :                                       
+[   4]        :                                       ; 地址定义	
+[   5]        :                                       CS8251R  EQU 0F080H              ; 8251状态寄存器地址（只读）
+[   6]        :                                       CS8251D  EQU 0F000H              ; 8251数据寄存器地址
+[   7]        :                                       CS8251C  EQU 0F002H              ; 8251控制/命令寄存器地址
+[   8]        :                                       
+[   9]        :                                       TCONTRO  EQU 0A006H              ; 8253控制寄存器地址
+[  10]        :                                       TCON0    EQU 0A000H              ; 8253计数器0端口地址
+[  11]        :                                       
+[  12]        :                                       ; 主程序开始
+[  13]    0000:                                       START:
+[  14]        :                                       		; 设置DS指向数据段
+[  15]    0000: B8 06 00                              		MOV AX,DATA               ; 将DATA段地址存入AX
+[  16]    0003: 8E D8                                 		MOV DS,AX                 ; 将AX值赋给DS，使DS指向数据段
+[  17]        :                                       		
+[  18]        :                                       		; 8253初始化：设置通道0，只写低8位，方式3，二进制计数
+[  19]    0005: BA 06 A0                              		MOV DX,TCONTRO            ; DX←8253控制寄存器地址
+[  20]    0008: B0 16                                 		MOV AL,16H                ; 控制字：16H=00010110B
+[  21]        :                                       		; 00:选择计数器0
+[  22]        :                                       		; 01:只读写低字节
+[  23]        :                                       		; 011:工作方式3（方波发生器）
+[  24]        :                                       		; 0:二进制计数
+[  25]    000A: EE                                    		OUT DX,AL                 ; 写入8253控制寄存器
+[  26]        :                                       		
+[  27]        :                                       		; 设置计数器0初值为52，输出频率=1MHz/52≈19.23kHz
+[  28]    000B: BA 00 A0                              		MOV DX,TCON0              ; DX←8253计数器0地址
+[  29]    000E: B8 34 00                              		MOV AX,52                 ; 计数初值52
+[  30]    0011: EE                                    		OUT DX,AL                 ; 写入计数初值（只写低字节）
+[  31]        :                                       		
+[  32]        :                                       		; 8251初始化：读取状态寄存器（清除可能的状态）
+[  33]    0012: BA 80 F0                              		MOV DX, CS8251R           ; DX←8251状态寄存器地址
+[  34]    0015: EC                                    		IN AL,DX                  ; 读一次状态寄存器
+[  35]    0016: 90                                    		NOP                       ; 空操作，短暂延时
+[  36]    0017: BA 80 F0                              		MOV DX, CS8251R           ; 再次读取状态寄存器
+[  37]    001A: EC                                    		IN AL,DX                  ; 确保状态寄存器稳定
+[  38]    001B: 90                                    		NOP                       ; 空操作
+[  39]        :                                       		
+[  40]        :                                       		; 设置8251模式寄存器：
+[  41]        :                                       		; 异步模式，1个停止位，无校验，8位数据，波特率因子1
+[  42]    001C: BA 02 F0                              		MOV DX, CS8251C           ; DX←8251控制/命令寄存器地址
+[  43]    001F: B0 4D                                 		MOV AL, 01001101b         ; 模式字：4DH=01001101B
+[  44]        :                                       		; 01:波特率因子1
+[  45]        :                                       		; 00:无校验
+[  46]        :                                       		; 11:字符长度8位
+[  47]        :                                       		; 01:1个停止位
+[  48]    0021: EE                                    		OUT DX, AL                ; 写入模式寄存器
+[  49]        :                                       		
+[  50]        :                                       		; 设置8251控制寄存器：
+[  51]        :                                       		; 使能错误标志复位，允许接收，允许发送
+[  52]    0022: B0 15                                 		MOV AL, 00010101b         ; 命令字：15H=00010101B
+[  53]        :                                       		; 0:不发送中止字符
+[  54]        :                                       		; 0:RTS无效
+[  55]        :                                       		; 0:错误标志复位
+[  56]        :                                       		; 1:允许接收
+[  57]        :                                       		; 0:DTR无效
+[  58]        :                                       		; 1:允许发送
+[  59]        :                                       		; 0:不发送空白字符
+[  60]        :                                       		; 1:内部复位
+[  61]    0024: EE                                    		OUT DX, AL                ; 写入控制寄存器
+[  62]        :                                       		
+[  63]    0025:                                       START4:
+[  64]        :                                       		; 发送数据：字节数存入CX，字符串首地址存入DI
+[  65]    0025: B9 16 00                              		MOV CX,22                 ; 设置发送字节数22
+[  66]    0028: BF 00 00                              		LEA DI,STR1               ; DI指向字符串"Fengbiao Educational!"首地址
+[  67]        :                                       		
+[  68]        :                                       		; 发送一个字节数据
+[  69]    002B:                                       SEND:
+[  70]    002B:                                       WaitTXD:
+[  71]        :                                       		; 等待发送缓冲区空（TxRDY=1）
+[  72]    002B: BA 02 F0                              		MOV DX,CS8251C            ; DX←8251控制/状态寄存器地址
+[  73]    002E: EC                                    		IN AL, DX                 ; 读取状态寄存器
+[  74]    002F: A8 01                                 		TEST AL, 1                ; 测试第0位（TxRDY-发送准备就绪位）
+[  75]    0031: 74 F8                                 		JZ WaitTXD                ; 如果为0，继续等待
+[  76]        :                                       		
+[  77]        :                                       		; 发送一个字节数据
+[  78]    0033: 8A 05                                 		MOV AL, [DI]              ; 从内存取一个字符到AL
+[  79]    0035: BA 00 F0                              		MOV DX, CS8251D           ; DX←8251数据寄存器地址
+[  80]    0038: EE                                    		OUT DX, AL                ; 发送字符
+[  81]        :                                       		
+[  82]        :                                       		; 小延时，确保字符发送完成
+[  83]    0039: 51                                    		PUSH CX                    ; 保存CX（外层循环计数器）
+[  84]    003A: B9 2F 00                              		MOV CX,2FH                 ; 设置延时循环次数2FH=47
+[  85]    003D: E2 FE                                 		LOOP $                    ; 空循环延时
+[  86]    003F: 59                                    		POP CX                     ; 恢复CX
+[  87]        :                                       		
+[  88]        :                                       		; 指向下一个字节
+[  89]    0040: 47                                    		INC DI                     ; DI加1，指向下一个字符
+[  90]        :                                       		
+[  91]        :                                       		; 完成一个字节发送，循环直到所有字节发送完毕
+[  92]    0041: E2 E8                                 		LOOP SEND                  ; CX减1，不为0则跳转到SEND继续发送
+[  93]        :                                       		
+[  94]        :                                       		; 完成所有字节发送，重新开始发送
+[  95]    0043: EB E0                                 		JMP START4                 ; 跳转到START4，重新发送字符串
+[  96]        :                                       
+[  97]        :                                       ; 接收子程序（程序中未调用，但定义了）
+[  98]    0045:                                       Receive:
+[  99]    0045: BA 02 F0                              MOV DX, CS8251C           ; 准备读取状态
+[ 100]    0048:                                       WaitRXD:
+[ 101]    0048: EC                                    IN AL, DX                 ; 读取状态寄存器
+[ 102]    0049: A8 02                                 TEST AL, 2                ; 测试第1位（RxRDY-接收准备就绪位）
+[ 103]    004B: 74 FB                                 JE WaitRXD                ; 如果为0，继续等待
+[ 104]    004D: BA 00 F0                              MOV DX, CS8251D           ; 准备读取数据
+[ 105]    0050: EC                                    IN AL, DX                 ; 从8251数据寄存器读取接收到的数据
+[ 106]    0051: 8A F8                                 MOV BH, AL                ; 将接收到的数据存入BH
+[ 107]        :                                       
+[ 108]    0053: EB AB                                 JMP START                 ; 跳回START，重新初始化
+[ 109]        :                                       
+[ 110]        :                                       CODE      ENDS                  ; 代码段结束
+[ 111]        :                                       
+[ 112]        :                                       ; 数据段定义
+[ 113]        :                                       DATA    SEGMENT
+[ 114]    0060: 46 65 6E 67 62 69 61 6F 20 45 64 75   STR1 db 'Fengbiao Educational!' ; 要发送的字符串，21个字符
+                63 61 74 69 6F 6E 61 6C 21          
+[ 115]    0075: 0D                                    str2 db 0dh                     ; 回车符（程序中未使用）
+[ 116]        :                                       DATA    ENDS                    ; 数据段结束
+[ 117]        :                                       
+[ 118]        :                                       END START                       ; 程序结束，入口点为START
+[ 119]        :                                       
+ 
+===================================================================================================
+ 
+EXE HEADER - bytes from 0000 to 01FF inclusive.
+
+0000: 4D      -   exe signature (M)
+0001: 5A      -   exe signature (Z)
+0002: 76      -   bytes on last page (l.byte)
+0003: 00      -   bytes on last page (h.byte)
+0004: 02      -   512 byte pages in file (l.byte)
+0005: 00      -   512 byte pages in file (h.byte)
+0006: 01      -   relocations (l.byte)
+0007: 00      -   relocations (h.byte)
+0008: 20      -   paragraphs in header (l.byte)
+0009: 00      -   paragraphs in header (h.byte)
+000A: 00      -   minimum memory (l.byte)
+000B: 00      -   minimum memory (h.byte)
+000C: FF      -   maximum memory (l.byte)
+000D: FF      -   maximum memory (h.byte)
+000E: 00      -   SS - stack segment (l.byte)
+000F: 00      -   SS - stack segment (h.byte)
+0010: 00      -   SP - stack pointer (l.byte)
+0011: 00      -   SP - stack pointer (h.byte)
+0012: 21      -   check sum (l.byte)
+0013: 80      -   check sum (h.byte)
+0014: 00      -   IP - instruction pointer (l.byte)
+0015: 00      -   IP - instruction pointer (h.byte)
+0016: 00      -   CS - code segment (l.byte)
+0017: 00      -   CS - code segment (h.byte)
+0018: 1E      -   relocation table adress (l.byte)
+0019: 00      -   relocation table adress (h.byte)
+001A: 00      -   overlay number (l.byte)
+001B: 00      -   overlay number (h.byte)
+001C: 01      -   signature (l.byte)
+001D: 00      -   signature (h.byte)
+001E: 01      -   relocation table - offset inside segment (l.byte)
+001F: 00      -   relocation table - offset inside segment (h.byte)
+0020: 00      -   relocation table - segment anchor (l.byte)
+0021: 00      -   relocation table - segment anchor (h.byte)
+0022 to 01FF  -   reserved relocation area  (00) 
+
+
+
+
+===================================================================================================

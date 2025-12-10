@@ -1,0 +1,83 @@
+EMU8086 GENERATED LISTING. MACHINE CODE <- SOURCE.
+ 
+MCPE-11-BASIC.exe -- emu8086 assembler version: 4.08  
+ 
+[ 2025-12-10  --  11:01:24 ] 
+ 
+===================================================================================================
+[LINE]     LOC: MACHINE CODE                          SOURCE
+===================================================================================================
+ 
+[   1]        :                                       CODE	SEGMENT                     ; 定义代码段开始
+[   2]        :                                       		ASSUME CS:CODE               ; 告知汇编器CS寄存器指向CODE段
+[   3]        :                                       
+[   4]        :                                       ; 地址定义	
+[   5]        :                                       TCONTRO   EQU 0A006H               ; 8253控制寄存器地址
+[   6]        :                                       TCON0     EQU 0A000H               ; 计数器0端口地址
+[   7]        :                                       TCON1     EQU 0A002H               ; 计数器1端口地址
+[   8]        :                                       TCON2     EQU 0A004H               ; 计数器2端口地址
+[   9]        :                                       
+[  10]        :                                       ; 程序开始
+[  11]    0000:                                       START:
+[  12]        :                                       		; 设置计数器0，只写计算值低8位，方式3，二进制计数
+[  13]    0000: BA 06 A0                              		MOV DX,TCONTRO             ; DX←控制寄存器地址0A006H
+[  14]    0003: B0 16                                 		MOV AL,16H                 ; AL←控制字16H(00010110B)
+[  15]        :                                       		; 控制字格式详解：
+[  16]        :                                       		; 00: 选择计数器0
+[  17]        :                                       		; 01: 只读写低字节
+[  18]        :                                       		; 011: 工作方式3（方波发生器）
+[  19]        :                                       		; 0: 二进制计数
+[  20]    0005: EE                                    		OUT DX,AL                  ; 将控制字写入8253控制寄存器
+[  21]        :                                       		
+[  22]        :                                       		; 时钟为1MHZ，计数时间=1us*20=20us，输出频率50KHZ
+[  23]    0006: BA 00 A0                              		MOV DX,TCON0               ; DX←计数器0地址0A000H
+[  24]    0009: B8 14 00                              		MOV AX,20                  ; AX←计数值20（十进制）
+[  25]    000C: EE                                    		OUT DX,AL                  ; 将计数值低字节写入计数器0
+[  26]        :                                       		
+[  27]        :                                       		; 结束 - 无限循环
+[  28]    000D: EB FE                                 		JMP $                      ; 无限循环，程序停留在此处
+[  29]        :                                       		
+[  30]        :                                       CODE	ENDS                      ; 代码段结束
+[  31]        :                                       		END START                 ; 程序结束，入口点为START
+[  32]        :                                       
+ 
+===================================================================================================
+ 
+EXE HEADER - bytes from 0000 to 01FF inclusive.
+
+0000: 4D      -   exe signature (M)
+0001: 5A      -   exe signature (Z)
+0002: 0F      -   bytes on last page (l.byte)
+0003: 00      -   bytes on last page (h.byte)
+0004: 02      -   512 byte pages in file (l.byte)
+0005: 00      -   512 byte pages in file (h.byte)
+0006: 00      -   relocations (l.byte)
+0007: 00      -   relocations (h.byte)
+0008: 20      -   paragraphs in header (l.byte)
+0009: 00      -   paragraphs in header (h.byte)
+000A: 00      -   minimum memory (l.byte)
+000B: 00      -   minimum memory (h.byte)
+000C: FF      -   maximum memory (l.byte)
+000D: FF      -   maximum memory (h.byte)
+000E: 00      -   SS - stack segment (l.byte)
+000F: 00      -   SS - stack segment (h.byte)
+0010: 00      -   SP - stack pointer (l.byte)
+0011: 00      -   SP - stack pointer (h.byte)
+0012: 99      -   check sum (l.byte)
+0013: 59      -   check sum (h.byte)
+0014: 00      -   IP - instruction pointer (l.byte)
+0015: 00      -   IP - instruction pointer (h.byte)
+0016: 00      -   CS - code segment (l.byte)
+0017: 00      -   CS - code segment (h.byte)
+0018: 1E      -   relocation table adress (l.byte)
+0019: 00      -   relocation table adress (h.byte)
+001A: 00      -   overlay number (l.byte)
+001B: 00      -   overlay number (h.byte)
+001C: 01      -   signature (l.byte)
+001D: 00      -   signature (h.byte)
+001E to 01FF  -   reserved relocation area  (00) 
+
+
+
+
+===================================================================================================
