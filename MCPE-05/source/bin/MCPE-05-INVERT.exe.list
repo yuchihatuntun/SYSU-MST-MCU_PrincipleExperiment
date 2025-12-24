@@ -1,0 +1,124 @@
+EMU8086 GENERATED LISTING. MACHINE CODE <- SOURCE.
+ 
+MCPE-05-INVERT.exe -- emu8086 assembler version: 4.08  
+ 
+[ 2025-11-26  --  9:52:16 ] 
+ 
+===================================================================================================
+[LINE]     LOC: MACHINE CODE                          SOURCE
+===================================================================================================
+ 
+[   1]        :                                       ; Horner法则: ((((万位 × 10) + 千位) × 10 + 百位) × 10 + 十位) × 10 + 个位
+[   2]        :                                       CODE SEGMENT
+[   3]        :                                       ASSUME CS:CODE
+[   4]    0000:                                       START:
+[   5]    0000: 8C C8                                 MOV  AX, CS
+[   6]    0002: 8E D8                                 MOV  DS, AX
+[   7]        :                                       
+[   8]        :                                       ; === 测试用例选择区 ===
+[   9]        :                                       
+[  10]        :                                       ; 65535 (默认)
+[  11]        :                                       ;MOV  BYTE PTR [0200H], 06H
+[  12]        :                                       ;MOV  BYTE PTR [0201H], 05H
+[  13]        :                                       ;MOV  BYTE PTR [0202H], 05H
+[  14]        :                                       ;MOV  BYTE PTR [0203H], 03H
+[  15]        :                                       ;MOV  BYTE PTR [0204H], 05H
+[  16]        :                                       
+[  17]        :                                       ; 12345
+[  18]    0004: C6 06 00 02 01                        MOV  BYTE PTR [0200H], 01H
+[  19]    0009: C6 06 01 02 02                        MOV  BYTE PTR [0201H], 02H
+[  20]    000E: C6 06 02 02 03                        MOV  BYTE PTR [0202H], 03H
+[  21]    0013: C6 06 03 02 04                        MOV  BYTE PTR [0203H], 04H
+[  22]    0018: C6 06 04 02 05                        MOV  BYTE PTR [0204H], 05H
+[  23]        :                                       
+[  24]        :                                       ; 0
+[  25]        :                                       ; MOV  BYTE PTR [0200H], 00H
+[  26]        :                                       ; MOV  BYTE PTR [0201H], 00H
+[  27]        :                                       ; MOV  BYTE PTR [0202H], 00H
+[  28]        :                                       ; MOV  BYTE PTR [0203H], 00H
+[  29]        :                                       ; MOV  BYTE PTR [0204H], 00H
+[  30]        :                                       
+[  31]        :                                       ; 10000
+[  32]        :                                       ; MOV  BYTE PTR [0200H], 01H
+[  33]        :                                       ; MOV  BYTE PTR [0201H], 00H
+[  34]        :                                       ; MOV  BYTE PTR [0202H], 00H
+[  35]        :                                       ; MOV  BYTE PTR [0203H], 00H
+[  36]        :                                       ; MOV  BYTE PTR [0204H], 00H
+[  37]        :                                       
+[  38]    001D: BB 0A 00                              MOV  BX, 10         ; 乘数10（用于迭代计算）
+[  39]    0020: 33 C0                                 XOR  AX, AX         ; AX=0（初始化结果）
+[  40]        :                                       
+[  41]        :                                       ; --- 万位处理 (0200H) ---
+[  42]    0022: 8A 16 00 02                           MOV  DL, [0200H]    ; 读取万位BCD
+[  43]    0026: 32 F6                                 XOR  DH, DH         ; 清除DH
+[  44]    0028: 03 C2                                 ADD  AX, DX         ; AX = 万位值
+[  45]    002A: F7 E3                                 MUL  BX             ; AX = 万位 × 10
+[  46]        :                                       
+[  47]        :                                       ; --- 千位处理 (0201H) ---
+[  48]    002C: 8A 16 01 02                           MOV  DL, [0201H]    ; 读取千位BCD
+[  49]    0030: 32 F6                                 XOR  DH, DH
+[  50]    0032: 03 C2                                 ADD  AX, DX         ; AX = (万位×10) + 千位
+[  51]    0034: F7 E3                                 MUL  BX             ; AX = (万位×10+千位) × 10
+[  52]        :                                       
+[  53]        :                                       ; --- 百位处理 (0202H) ---
+[  54]    0036: 8A 16 02 02                           MOV  DL, [0202H]    ; 读取百位BCD
+[  55]    003A: 32 F6                                 XOR  DH, DH
+[  56]    003C: 03 C2                                 ADD  AX, DX         ; AX = (万位×100+千位×10) + 百位
+[  57]    003E: F7 E3                                 MUL  BX             ; AX = (万位×100+千位×10+百位) × 10
+[  58]        :                                       
+[  59]        :                                       ; --- 十位处理 (0203H) ---
+[  60]    0040: 8A 16 03 02                           MOV  DL, [0203H]    ; 读取十位BCD
+[  61]    0044: 32 F6                                 XOR  DH, DH
+[  62]    0046: 03 C2                                 ADD  AX, DX         ; AX = (万位×1000+千位×100+百位×10) + 十位
+[  63]    0048: F7 E3                                 MUL  BX             ; AX = (万位×1000+千位×100+百位×10+十位) × 10
+[  64]        :                                       
+[  65]        :                                       ; --- 个位处理 (0204H) ---
+[  66]    004A: 8A 16 04 02                           MOV  DL, [0204H]    ; 读取个位BCD
+[  67]    004E: 32 F6                                 XOR  DH, DH
+[  68]    0050: 03 C2                                 ADD  AX, DX         ; AX = 最终16进制值 (0~65535)
+[  69]        :                                       
+[  70]    0052: EB FE                                 JMP  $              ; 结果在AX中
+[  71]        :                                       CODE ENDS
+[  72]        :                                       END START
+[  73]        :                                       
+ 
+===================================================================================================
+ 
+EXE HEADER - bytes from 0000 to 01FF inclusive.
+
+0000: 4D      -   exe signature (M)
+0001: 5A      -   exe signature (Z)
+0002: 54      -   bytes on last page (l.byte)
+0003: 00      -   bytes on last page (h.byte)
+0004: 02      -   512 byte pages in file (l.byte)
+0005: 00      -   512 byte pages in file (h.byte)
+0006: 00      -   relocations (l.byte)
+0007: 00      -   relocations (h.byte)
+0008: 20      -   paragraphs in header (l.byte)
+0009: 00      -   paragraphs in header (h.byte)
+000A: 00      -   minimum memory (l.byte)
+000B: 00      -   minimum memory (h.byte)
+000C: FF      -   maximum memory (l.byte)
+000D: FF      -   maximum memory (h.byte)
+000E: 00      -   SS - stack segment (l.byte)
+000F: 00      -   SS - stack segment (h.byte)
+0010: 00      -   SP - stack pointer (l.byte)
+0011: 00      -   SP - stack pointer (h.byte)
+0012: CA      -   check sum (l.byte)
+0013: 35      -   check sum (h.byte)
+0014: 00      -   IP - instruction pointer (l.byte)
+0015: 00      -   IP - instruction pointer (h.byte)
+0016: 00      -   CS - code segment (l.byte)
+0017: 00      -   CS - code segment (h.byte)
+0018: 1E      -   relocation table adress (l.byte)
+0019: 00      -   relocation table adress (h.byte)
+001A: 00      -   overlay number (l.byte)
+001B: 00      -   overlay number (h.byte)
+001C: 01      -   signature (l.byte)
+001D: 00      -   signature (h.byte)
+001E to 01FF  -   reserved relocation area  (00) 
+
+
+
+
+===================================================================================================

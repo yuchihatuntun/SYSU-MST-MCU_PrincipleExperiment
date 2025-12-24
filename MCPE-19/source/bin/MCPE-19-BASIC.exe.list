@@ -1,0 +1,181 @@
+EMU8086 GENERATED LISTING. MACHINE CODE <- SOURCE.
+ 
+MCPE-19-BASIC.exe -- emu8086 assembler version: 4.08  
+ 
+[ 2025-12-24  --  9:58:51 ] 
+ 
+===================================================================================================
+[LINE]     LOC: MACHINE CODE                          SOURCE
+===================================================================================================
+ 
+[   1]        :                                       ; =========================================================
+[   2]        :                                       ; 1. 先定义堆栈段 (移动到最前面)
+[   3]        :                                       ; =========================================================
+[   4]        :                                       STACK   SEGMENT 'STACK'
+[   5]    0000: 00 00 00 00 00 00 00 00 00 00 00 00   STA      DB  100 DUP(0) ; 定义100字节的堆栈空间
+                00 00 00 00 00 00 00 00 00 00 00 00 
+                00 00 00 00 00 00 00 00 00 00 00 00 
+                00 00 00 00 00 00 00 00 00 00 00 00 
+                00 00 00 00 00 00 00 00 00 00 00 00 
+                00 00 00 00 00 00 00 00 00 00 00 00 
+                00 00 00 00 00 00 00 00 00 00 00 00 
+                00 00 00 00 00 00 00 00 00 00 00 00 
+                00 00 00 00                         
+[   6]        :                                       ; TOP   EQU LENGTH STA  ; 去掉这就话，直接在代码里用常数，防止报错
+[   7]        :                                       STACK   ENDS
+[   8]        :                                       
+[   9]        :                                       ; =========================================================
+[  10]        :                                       ; 2. 定义数据段
+[  11]        :                                       ; =========================================================
+[  12]        :                                       DATA    SEGMENT 'DATA'
+[  13]        :                                       ; 如果有数据定义在这里
+[  14]        :                                       DATA    ENDS
+[  15]        :                                       
+[  16]        :                                       ; =========================================================
+[  17]        :                                       ; 3. 最后定义代码段
+[  18]        :                                       ; =========================================================
+[  19]        :                                       CODE    SEGMENT 'CODE'
+[  20]        :                                       ASSUME CS:CODE, SS:STACK, DS:DATA
+[  21]        :                                       
+[  22]        :                                       ; 端口定义
+[  23]        :                                       IOCON   EQU 8006H
+[  24]        :                                       IOA     EQU 8000H
+[  25]        :                                       IOB     EQU 8002H
+[  26]        :                                       IOC     EQU 8004H
+[  27]        :                                       
+[  28]    0070:                                       START:
+[  29]        :                                       ; 初始化数据段
+[  30]    0070: B8 07 00                              MOV AX, DATA
+[  31]    0073: 8E D8                                 MOV DS, AX
+[  32]        :                                       
+[  33]        :                                       ; 初始化堆栈段
+[  34]    0075: B8 00 00                              MOV AX, STACK
+[  35]    0078: 8E D0                                 MOV SS, AX
+[  36]        :                                       
+[  37]        :                                       ; -----------------------------------------------------
+[  38]        :                                       ; 修改点：直接给 SP 赋值堆栈的大小 (100)
+[  39]        :                                       ; -----------------------------------------------------
+[  40]    007A: B8 64 00                              MOV AX, 100      ; 对应 STA DB 100 DUP(?) 的大小
+[  41]    007D: 8B E0                                 MOV SP, AX       ; 让堆栈指针指向栈顶
+[  42]        :                                       
+[  43]        :                                       ; 初始化 8255
+[  44]    007F: B0 90                                 MOV AL, 90H
+[  45]    0081: BA 06 80                              MOV DX, IOCON
+[  46]    0084: EE                                    OUT DX, AL
+[  47]        :                                       
+[  48]    0085: 90                                    NOP
+[  49]    0086: 90                                    NOP
+[  50]        :                                       
+[  51]        :                                       ; ... (后面的代码逻辑保持不变) ...
+[  52]        :                                       
+[  53]    0087:                                       TEST_BU:
+[  54]    0087: BA 00 80                              MOV DX, IOA
+[  55]    008A: EC                                    IN  AL, DX
+[  56]    008B: 90                                    NOP
+[  57]        :                                       
+[  58]    008C: A8 01                                 test_1: TEST AL, 01H
+[  59]    008E: 74 0A                                 JE MOT1
+[  60]    0090: A8 02                                 test_2: TEST AL, 02H
+[  61]    0092: 74 1A                                 JE MOT2
+[  62]    0094: A8 04                                 test_3: TEST AL, 04H
+[  63]    0096: 74 2A                                 JE MOT3
+[  64]    0098: EB ED                                 JMP TEST_BU
+[  65]        :                                       
+[  66]    009A:                                       MOT1:
+[  67]    009A: B0 FE                                 MOV AL, 0FEH
+[  68]    009C: BA 02 80                              MOV DX, IOB
+[  69]    009F: EE                                    OUT DX, AL
+[  70]    00A0: BA 00 80                              MOV DX, IOA
+[  71]    00A3: EC                                    IN  AL, DX
+[  72]    00A4: A8 02                                 TEST AL, 02H
+[  73]    00A6: 74 06                                 JE MOT2
+[  74]    00A8: A8 04                                 TEST AL, 04H
+[  75]    00AA: 74 16                                 JE MOT3
+[  76]    00AC: EB EC                                 JMP MOT1
+[  77]        :                                       
+[  78]    00AE:                                       MOT2:
+[  79]    00AE: B0 FD                                 MOV AL, 0FDH
+[  80]    00B0: BA 02 80                              MOV DX, IOB
+[  81]    00B3: EE                                    OUT DX, AL
+[  82]    00B4: BA 00 80                              MOV DX, IOA
+[  83]    00B7: EC                                    IN  AL, DX
+[  84]    00B8: A8 01                                 TEST AL, 01H
+[  85]    00BA: 74 DE                                 JE MOT1
+[  86]    00BC: A8 04                                 TEST AL, 04H
+[  87]    00BE: 74 02                                 JE MOT3
+[  88]    00C0: EB EC                                 JMP MOT2
+[  89]        :                                       
+[  90]    00C2:                                       MOT3:
+[  91]    00C2: B0 FF                                 MOV AL, 0FFH
+[  92]    00C4: BA 02 80                              MOV DX, IOB
+[  93]    00C7: EE                                    OUT DX, AL
+[  94]    00C8: BA 00 80                              MOV DX, IOA
+[  95]    00CB: EC                                    IN  AL, DX
+[  96]    00CC: A8 01                                 TEST AL, 01H
+[  97]    00CE: 74 CA                                 JE MOT1
+[  98]    00D0: A8 02                                 TEST AL, 02H
+[  99]    00D2: 74 DA                                 JE MOT2
+[ 100]    00D4: EB EC                                 JMP MOT3
+[ 101]        :                                       
+[ 102]    00D6: 51                                    DELAY:  PUSH CX
+[ 103]    00D7: B9 0F 00                              MOV CX, 0FH
+[ 104]    00DA: 90                                    DELAY1: NOP
+[ 105]    00DB: 90                                    NOP
+[ 106]    00DC: 90                                    NOP
+[ 107]    00DD: 90                                    NOP
+[ 108]    00DE: E2 FA                                 LOOP DELAY1
+[ 109]    00E0: 59                                    POP CX
+[ 110]    00E1: C3                                    RET
+[ 111]        :                                       
+[ 112]        :                                       CODE    ENDS
+[ 113]        :                                       END START
+[ 114]        :                                       
+ 
+===================================================================================================
+ 
+EXE HEADER - bytes from 0000 to 01FF inclusive.
+
+0000: 4D      -   exe signature (M)
+0001: 5A      -   exe signature (Z)
+0002: E2      -   bytes on last page (l.byte)
+0003: 00      -   bytes on last page (h.byte)
+0004: 02      -   512 byte pages in file (l.byte)
+0005: 00      -   512 byte pages in file (h.byte)
+0006: 02      -   relocations (l.byte)
+0007: 00      -   relocations (h.byte)
+0008: 20      -   paragraphs in header (l.byte)
+0009: 00      -   paragraphs in header (h.byte)
+000A: 00      -   minimum memory (l.byte)
+000B: 00      -   minimum memory (h.byte)
+000C: FF      -   maximum memory (l.byte)
+000D: FF      -   maximum memory (h.byte)
+000E: 00      -   SS - stack segment (l.byte)
+000F: 00      -   SS - stack segment (h.byte)
+0010: 64      -   SP - stack pointer (l.byte)
+0011: 00      -   SP - stack pointer (h.byte)
+0012: 89      -   check sum (l.byte)
+0013: 5B      -   check sum (h.byte)
+0014: 00      -   IP - instruction pointer (l.byte)
+0015: 00      -   IP - instruction pointer (h.byte)
+0016: 07      -   CS - code segment (l.byte)
+0017: 00      -   CS - code segment (h.byte)
+0018: 1E      -   relocation table adress (l.byte)
+0019: 00      -   relocation table adress (h.byte)
+001A: 00      -   overlay number (l.byte)
+001B: 00      -   overlay number (h.byte)
+001C: 01      -   signature (l.byte)
+001D: 00      -   signature (h.byte)
+001E: 01      -   relocation table - offset inside segment (l.byte)
+001F: 00      -   relocation table - offset inside segment (h.byte)
+0020: 07      -   relocation table - segment anchor (l.byte)
+0021: 00      -   relocation table - segment anchor (h.byte)
+0022: 06      -   relocation table - offset inside segment (l.byte)
+0023: 00      -   relocation table - offset inside segment (h.byte)
+0024: 07      -   relocation table - segment anchor (l.byte)
+0025: 00      -   relocation table - segment anchor (h.byte)
+0026 to 01FF  -   reserved relocation area  (00) 
+
+
+
+
+===================================================================================================

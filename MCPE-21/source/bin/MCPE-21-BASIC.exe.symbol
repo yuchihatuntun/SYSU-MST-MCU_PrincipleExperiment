@@ -1,0 +1,22 @@
+< THE SYMBOL TABLE >  MCPE-21-BASIC.exe  --  emu8086 assembler version: 4.08 
+===================================================================================================
+Name                     	Offset    	Size      	Type      	Segment   
+===================================================================================================
+STACK                    	00000     	-5        	SEGMENT   	(ITSELF)  
+STA                      	00000     	1         	VAR       	STACK     
+DATA                     	00007     	-5        	SEGMENT   	(ITSELF)  
+TABLE                    	00000     	1         	VAR       	DATA      
+CODE                     	00009     	-5        	SEGMENT   	(ITSELF)  
+START                    	00000     	-1        	LABEL     	CODE      
+TEST_BU                  	0000D     	-1        	LABEL     	CODE      
+DISP                     	00014     	-1        	LABEL     	CODE      
+DISP1                    	0001A     	-1        	LABEL     	CODE      
+DISP2                    	00020     	-1        	LABEL     	CODE      
+DELAY                    	00043     	-1        	LABEL     	CODE      
+DELAY1                   	00047     	-1        	LABEL     	CODE      
+DELAY2                   	0004F     	-1        	LABEL     	CODE      
+DELAY3                   	00053     	-1        	LABEL     	CODE      
+===================================================================================================
+[ 2025-12-24  --  10:15:01 ] 
+< END >
+ 

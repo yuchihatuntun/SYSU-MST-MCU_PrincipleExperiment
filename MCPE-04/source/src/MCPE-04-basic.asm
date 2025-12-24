@@ -1,0 +1,27 @@
+CODE    SEGMENT
+        ASSUME  CS:CODE          ; 关联代码段寄存器
+
+START:  MOV     SI, 1000H       ; 源地址指针初始化（1000H）
+        MOV     CX, 10          ; 循环次数=10（操作10个字节）
+        MOV     AL, 1           ; 初始值AL=1（原代码"1PU_IN"修正为合法初始值）
+
+PU_IN:  MOV     [SI], AL        ; 将AL的值存入[SI]（1000H开始的内存）
+        INC     AL              ; AL自增1（下一个数值：2→3→...→100）
+        INC     SI              ; 源地址指针后移1字节
+        LOOP    PU_IN           ; 循环执行，直到CX=0（完成10个字节写入）
+
+        ; 以下为内存块移动逻辑
+        MOV     CX, 10          ; 重置循环次数=10
+        MOV     SI, 1000H       ; 重置源地址指针（1000H）
+        MOV     DI, 1100H       ; 目标地址指针初始化（1100H）
+
+FADR:   MOV     AL, [SI]        ; 从源地址读取1字节到AL
+        MOV     [DI], AL        ; 将AL的值写入目标地址
+        INC     SI              ; 源地址指针后移
+        INC     DI              ; 目标地址指针后移
+        DEC     CX              ; 循环次数减1
+        JNE     FADR            ; 若CX≠0，继续循环移动
+
+        JMP     $               ; 程序暂停（无限循环）
+CODE    ENDS                    ; 代码段结束
+        END     START           ; 程序入口点为START

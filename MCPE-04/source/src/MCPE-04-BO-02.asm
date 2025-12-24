@@ -1,0 +1,35 @@
+CODE    SEGMENT
+        ASSUME  CS:CODE, DS:CODE, ES:CODE  
+
+START:  MOV     AX, CS
+        MOV     DS, AX            ; DS指向代码段
+        MOV     ES, AX            ; ES指向代码段
+        
+        MOV     SI, 1000H          
+        MOV     CX, 10            
+        MOV     AL, 1
+INIT_SRC:
+        MOV     [SI], AL          ; 写入数据
+        INC     AL
+        INC     SI
+        LOOP    INIT_SRC
+
+        ; 后向重叠搬运参数
+        MOV     SI, 1000H         ; 源首地址：1000H
+        MOV     DI, 1002H         ; 目的首地址：1002H
+        MOV     CX, 10            ; 数据长度：10字节
+
+        ; --- 1. 指针调整到末尾 ---
+        ADD     SI, CX
+        DEC     SI                ; SI指向源块最后一个字节（1000H+10-1=1009H）
+        ADD     DI, CX
+        DEC     DI                ; DI指向目的块最后一个字节（1002H+10-1=100BH）
+
+        ; --- 2. 核心串操作（8086专属高效做法） ---
+        STD                       ; 设置方向标志DF=1
+        REP MOVSB                 ; 硬件自动循环搬运：重复CX次，每次搬1字节，SI/DI自动-1
+
+        CLD                       ; 恢复DF=0（正向搬运）
+        JMP     $                 
+CODE    ENDS
+        END     START

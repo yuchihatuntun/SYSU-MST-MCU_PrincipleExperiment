@@ -1,0 +1,19 @@
+< THE SYMBOL TABLE >  MCPE-08-BASIC.exe  --  emu8086 assembler version: 4.08 
+===================================================================================================
+Name                     	Offset    	Size      	Type      	Segment   
+===================================================================================================
+DATA                     	00000     	-5        	SEGMENT   	(ITSELF)  
+TABLE                    	00000     	2         	VAR       	DATA      
+NEGNUM                   	0002A     	2         	VAR       	DATA      
+POSNUM                   	0002C     	2         	VAR       	DATA      
+ZERONUM                  	0002E     	2         	VAR       	DATA      
+CODE                     	00003     	-5        	SEGMENT   	(ITSELF)  
+START                    	00000     	-1        	LABEL     	CODE      
+COUNT_LOOP               	00012     	-1        	LABEL     	CODE      
+IS_NEG                   	0001C     	-1        	LABEL     	CODE      
+IS_POS                   	0001F     	-1        	LABEL     	CODE      
+NEXT                     	00020     	-1        	LABEL     	CODE      
+===================================================================================================
+[ 2025-11-26  --  14:40:54 ] 
+< END >
+ 

@@ -1,0 +1,199 @@
+EMU8086 GENERATED LISTING. MACHINE CODE <- SOURCE.
+ 
+MCPE-21-BASIC.exe -- emu8086 assembler version: 4.08  
+ 
+[ 2025-12-24  --  10:15:01 ] 
+ 
+===================================================================================================
+[LINE]     LOC: MACHINE CODE                          SOURCE
+===================================================================================================
+ 
+[   1]        :                                       ;=========================================================
+[   2]        :                                       ; 1. 堆栈段 (STACK) - 放在最前面以避免编译错误
+[   3]        :                                       ;=========================================================
+[   4]        :                                       STACK   SEGMENT 'STACK'
+[   5]    0000: 00 00 00 00 00 00 00 00 00 00 00 00   STA     DB  100 DUP(0)  ; 分配100字节堆栈空间，初始化为0
+                00 00 00 00 00 00 00 00 00 00 00 00 
+                00 00 00 00 00 00 00 00 00 00 00 00 
+                00 00 00 00 00 00 00 00 00 00 00 00 
+                00 00 00 00 00 00 00 00 00 00 00 00 
+                00 00 00 00 00 00 00 00 00 00 00 00 
+                00 00 00 00 00 00 00 00 00 00 00 00 
+                00 00 00 00 00 00 00 00 00 00 00 00 
+                00 00 00 00                         
+[   6]        :                                       STACK   ENDS
+[   7]        :                                       
+[   8]        :                                       ;=========================================================
+[   9]        :                                       ; 2. 数据段 (DATA) - 存放点阵字模
+[  10]        :                                       ;=========================================================
+[  11]        :                                       DATA    SEGMENT 'DATA'
+[  12]        :                                       ; 这里存放了 32 个字节的数据
+[  13]        :                                       ; 每 8 个字节组成一幅画面 (8x8点阵)，这里共有 4 幅画面
+[  14]        :                                       ; 程序会依次显示这 4 组数据，形成简单的动画效果
+[  15]    0070: FF EF D7 BB BB AB 31 FB               TABLE   DB  0FFH,0EFH,0D7H,0BBH,0BBH,0ABH,31H,0FBH ; 第1帧
+[  16]    0078: FF EF D7 BB BB AB 29 EF               DB  0FFH,0EFH,0D7H,0BBH,0BBH,0ABH,29H,0EFH ; 第2帧
+[  17]    0080: FF EF D7 BB BB AB 19 BF               DB  0FFH,0EFH,0D7H,0BBH,0BBH,0ABH,19H,0BFH ; 第3帧
+[  18]    0088: FF EF D7 BB BB AB 29 EF               DB  0FFH,0EFH,0D7H,0BBH,0BBH,0ABH,29H,0EFH ; 第4帧
+[  19]        :                                       DATA    ENDS
+[  20]        :                                       
+[  21]        :                                       ;=========================================================
+[  22]        :                                       ; 3. 代码段 (CODE)
+[  23]        :                                       ;=========================================================
+[  24]        :                                       CODE    SEGMENT 'CODE'
+[  25]        :                                       ASSUME CS:CODE, SS:STACK, DS:DATA
+[  26]        :                                       
+[  27]        :                                       ; 端口地址定义
+[  28]        :                                       IOCON   EQU 8006H       ; 8255 控制口
+[  29]        :                                       IOA     EQU 8000H       ; A口 (用于行扫描/位选)
+[  30]        :                                       IOB     EQU 8002H       ; B口 (用于输出字形码/段选)
+[  31]        :                                       IOC     EQU 8004H       ; C口 (未使用)
+[  32]        :                                       
+[  33]    0090:                                       START:
+[  34]        :                                       ;-----------------------------------------------------
+[  35]        :                                       ; 初始化段寄存器
+[  36]        :                                       ;-----------------------------------------------------
+[  37]    0090: B8 07 00                              MOV AX, DATA
+[  38]    0093: 8E D8                                 MOV DS, AX
+[  39]        :                                       
+[  40]    0095: B8 00 00                              MOV AX, STACK
+[  41]    0098: 8E D0                                 MOV SS, AX
+[  42]    009A: BC 64 00                              MOV SP, 100         ; 设置栈顶指针
+[  43]        :                                       
+[  44]        :                                       ;-----------------------------------------------------
+[  45]        :                                       ; 8255 初始化
+[  46]        :                                       ;-----------------------------------------------------
+[  47]    009D:                                       TEST_BU:
+[  48]    009D: B0 80                                 MOV AL, 80H         ; 控制字 1000 0000 B
+[  49]        :                                       ; A口: 方式0, 输出 (控制扫描行)
+[  50]        :                                       ; B口: 方式0, 输出 (控制显示的LED点)
+[  51]    009F: BA 06 80                              MOV DX, IOCON
+[  52]    00A2: EE                                    OUT DX, AL
+[  53]    00A3: 90                                    NOP
+[  54]        :                                       
+[  55]        :                                       ;-----------------------------------------------------
+[  56]        :                                       ; 主显示循环
+[  57]        :                                       ;-----------------------------------------------------
+[  58]    00A4:                                       DISP:
+[  59]    00A4: BF 00 00                              LEA DI, TABLE       ; 将 DI 指向字形表的首地址
+[  60]    00A7: B9 04 00                              MOV CX, 04H         ; 设置外层循环次数：4帧画面
+[  61]        :                                       
+[  62]    00AA:                                       DISP1:  ; --- 外层循环：切换画面 (Frame Loop) ---
+[  63]    00AA: 51                                    PUSH CX             ; 保存外层计数器 (因为内层也要用CX)
+[  64]        :                                       
+[  65]    00AB: B9 08 00                              MOV CX, 08H         ; 设置内层循环次数：8行扫描
+[  66]    00AE: B7 01                                 MOV BH, 01H         ; 初始化扫描码：0000 0001
+[  67]        :                                       ; 表示从第1行开始点亮
+[  68]        :                                       
+[  69]    00B0:                                       DISP2:  ; --- 内层循环：行扫描 (Row Scan Loop) ---
+[  70]        :                                       
+[  71]        :                                       ; 步骤1：消隐 (Anti-ghosting)
+[  72]        :                                       ; 在发送新数据前，先关闭所有行，防止上一行的数据“鬼影”显示在当前行
+[  73]    00B0: BA 00 80                              MOV DX, IOA
+[  74]    00B3: B0 00                                 MOV AL, 00H
+[  75]    00B5: EE                                    OUT DX, AL
+[  76]        :                                       
+[  77]        :                                       ; 步骤2：输出字形数据 (列数据)
+[  78]    00B6: BA 02 80                              MOV DX, IOB
+[  79]    00B9: 8A 05                                 MOV AL, [DI]        ; 从表中取出一个字节数据
+[  80]    00BB: EE                                    OUT DX, AL          ; 送入 B 口
+[  81]        :                                       
+[  82]        :                                       ; 步骤3：输出扫描码 (选中当前行)
+[  83]    00BC: BA 00 80                              MOV DX, IOA
+[  84]    00BF: 8A C7                                 MOV AL, BH          ; 将当前的行选信号 (如 0000 0001)
+[  85]    00C1: EE                                    OUT DX, AL          ; 送入 A 口
+[  86]        :                                       
+[  87]        :                                       ; 步骤4：视觉停留延时
+[  88]    00C2: E8 1A 00                              CALL DELAY2         ; 短延时，让LED亮一小会儿，人眼才能看清
+[  89]        :                                       
+[  90]        :                                       ; 步骤5：准备下一行
+[  91]    00C5: 47                                    INC DI              ; 数据指针+1，指向下一行的数据
+[  92]        :                                       
+[  93]        :                                       ; 移位操作：生成下一个扫描码
+[  94]    00C6: 8A C7                                 MOV AL, BH
+[  95]    00C8: D0 E0                                 SHL AL, 1           ; 左移一位 (0000 0001 -> 0000 0010)
+[  96]    00CA: 8A F8                                 MOV BH, AL          ; 保存回 BH，用于下一次循环
+[  97]        :                                       
+[  98]    00CC: E2 E2                                 LOOP DISP2          ; 循环8次，直到扫完这一帧的8行
+[  99]        :                                       
+[ 100]    00CE: 59                                    POP CX              ; 恢复外层计数器
+[ 101]    00CF: E2 D9                                 LOOP DISP1          ; 循环4次，直到显示完4帧画面
+[ 102]        :                                       
+[ 103]    00D1: EB D1                                 JMP DISP            ; 重新开始，循环播放动画
+[ 104]        :                                       
+[ 105]        :                                       ;=========================================================
+[ 106]        :                                       ; 延时子程序 (长延时 - 未在主逻辑中使用)
+[ 107]        :                                       ;=========================================================
+[ 108]    00D3: 51                                    DELAY:  PUSH CX
+[ 109]    00D4: B9 0F 01                              MOV CX, 10FH
+[ 110]    00D7: 90                                    DELAY1: NOP
+[ 111]    00D8: 90                                    NOP
+[ 112]    00D9: 90                                    NOP
+[ 113]    00DA: 90                                    NOP
+[ 114]    00DB: E2 FA                                 LOOP DELAY1
+[ 115]    00DD: 59                                    POP CX
+[ 116]    00DE: C3                                    RET
+[ 117]        :                                       
+[ 118]        :                                       ;=========================================================
+[ 119]        :                                       ; 扫描延时子程序 (短延时 - 关键)
+[ 120]        :                                       ; 用于控制每一行的点亮时间
+[ 121]        :                                       ;=========================================================
+[ 122]    00DF: 51                                    DELAY2: PUSH CX
+[ 123]    00E0: B9 01 00                              MOV CX, 01H         ; 延时非常短
+[ 124]    00E3: 90                                    DELAY3: NOP
+[ 125]    00E4: 90                                    NOP
+[ 126]    00E5: E2 FC                                 LOOP DELAY3
+[ 127]    00E7: 59                                    POP CX
+[ 128]    00E8: C3                                    RET
+[ 129]        :                                       
+[ 130]        :                                       CODE    ENDS
+[ 131]        :                                       END START
+[ 132]        :                                       
+ 
+===================================================================================================
+ 
+EXE HEADER - bytes from 0000 to 01FF inclusive.
+
+0000: 4D      -   exe signature (M)
+0001: 5A      -   exe signature (Z)
+0002: E9      -   bytes on last page (l.byte)
+0003: 00      -   bytes on last page (h.byte)
+0004: 02      -   512 byte pages in file (l.byte)
+0005: 00      -   512 byte pages in file (h.byte)
+0006: 02      -   relocations (l.byte)
+0007: 00      -   relocations (h.byte)
+0008: 20      -   paragraphs in header (l.byte)
+0009: 00      -   paragraphs in header (h.byte)
+000A: 00      -   minimum memory (l.byte)
+000B: 00      -   minimum memory (h.byte)
+000C: FF      -   maximum memory (l.byte)
+000D: FF      -   maximum memory (h.byte)
+000E: 00      -   SS - stack segment (l.byte)
+000F: 00      -   SS - stack segment (h.byte)
+0010: 64      -   SP - stack pointer (l.byte)
+0011: 00      -   SP - stack pointer (h.byte)
+0012: 36      -   check sum (l.byte)
+0013: 11      -   check sum (h.byte)
+0014: 00      -   IP - instruction pointer (l.byte)
+0015: 00      -   IP - instruction pointer (h.byte)
+0016: 09      -   CS - code segment (l.byte)
+0017: 00      -   CS - code segment (h.byte)
+0018: 1E      -   relocation table adress (l.byte)
+0019: 00      -   relocation table adress (h.byte)
+001A: 00      -   overlay number (l.byte)
+001B: 00      -   overlay number (h.byte)
+001C: 01      -   signature (l.byte)
+001D: 00      -   signature (h.byte)
+001E: 01      -   relocation table - offset inside segment (l.byte)
+001F: 00      -   relocation table - offset inside segment (h.byte)
+0020: 09      -   relocation table - segment anchor (l.byte)
+0021: 00      -   relocation table - segment anchor (h.byte)
+0022: 06      -   relocation table - offset inside segment (l.byte)
+0023: 00      -   relocation table - offset inside segment (h.byte)
+0024: 09      -   relocation table - segment anchor (l.byte)
+0025: 00      -   relocation table - segment anchor (h.byte)
+0026 to 01FF  -   reserved relocation area  (00) 
+
+
+
+
+===================================================================================================

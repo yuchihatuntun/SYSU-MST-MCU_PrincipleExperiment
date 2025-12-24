@@ -1,0 +1,92 @@
+EMU8086 GENERATED LISTING. MACHINE CODE <- SOURCE.
+ 
+MCPE-04-BO-01.exe -- emu8086 assembler version: 4.08  
+ 
+[ 2025-11-19  --  10:59:04 ] 
+ 
+===================================================================================================
+[LINE]     LOC: MACHINE CODE                          SOURCE
+===================================================================================================
+ 
+[   1]        :                                       CODE    SEGMENT
+[   2]        :                                       ASSUME  CS:CODE, DS:CODE  ; 段定义，DS和CS共用同一空间
+[   3]        :                                       
+[   4]    0000: 8C C8                                 START:  MOV     AX, CS
+[   5]    0002: 8E D8                                 MOV     DS, AX            ; DS指向代码段（临时用作数据区）
+[   6]    0004: 8E C0                                 MOV     ES, AX            ; ES与DS保持一致
+[   7]        :                                       
+[   8]        :                                       ; 初始化源数据
+[   9]    0006: BE 00 10                              MOV     SI, 1000H         ; 源首地址：1000H
+[  10]    0009: B9 0A 00                              MOV     CX, 10
+[  11]    000C: B0 01                                 MOV     AL, 1
+[  12]    000E:                                       INIT_SRC:
+[  13]    000E: 88 04                                 MOV     [SI], AL          ; 写入数据到1000H开始的地址
+[  14]    0010: FE C0                                 INC     AL
+[  15]    0012: 46                                    INC     SI
+[  16]    0013: E2 F9                                 LOOP    INIT_SRC
+[  17]        :                                       
+[  18]        :                                       ; 配置后向重叠搬运参数
+[  19]    0015: BE 00 10                              MOV     SI, 1000H         ; 源首地址：1000H
+[  20]    0018: BF 02 10                              MOV     DI, 1002H         ; 目的首地址：1002H（与源重叠）
+[  21]    001B: B9 0A 00                              MOV     CX, 10            ; 搬运长度：10字节
+[  22]        :                                       
+[  23]        :                                       ; 指针调整到末尾
+[  24]    001E: 03 F1                                 ADD     SI, CX
+[  25]    0020: 4E                                    DEC     SI                ; 源末尾地址：1000H+10-1=1009H
+[  26]    0021: 03 F9                                 ADD     DI, CX
+[  27]    0023: 4F                                    DEC     DI                ; 目的末尾地址：1002H+10-1=100BH
+[  28]        :                                       
+[  29]        :                                       ; 倒序循环搬运
+[  30]    0024:                                       BACK_COPY:
+[  31]    0024: 8A 04                                 MOV     AL, [SI]
+[  32]    0026: 88 05                                 MOV     [DI], AL          ; 直接用DS偏移DI（因DS=ES）
+[  33]    0028: 4E                                    DEC     SI
+[  34]    0029: 4F                                    DEC     DI
+[  35]    002A: 49                                    DEC     CX
+[  36]    002B: 75 F7                                 JNZ     BACK_COPY
+[  37]        :                                       
+[  38]    002D: EB FE                                 JMP     $                  ; 程序暂停
+[  39]        :                                       CODE    ENDS
+[  40]        :                                       END     START
+[  41]        :                                       
+ 
+===================================================================================================
+ 
+EXE HEADER - bytes from 0000 to 01FF inclusive.
+
+0000: 4D      -   exe signature (M)
+0001: 5A      -   exe signature (Z)
+0002: 2F      -   bytes on last page (l.byte)
+0003: 00      -   bytes on last page (h.byte)
+0004: 02      -   512 byte pages in file (l.byte)
+0005: 00      -   512 byte pages in file (h.byte)
+0006: 00      -   relocations (l.byte)
+0007: 00      -   relocations (h.byte)
+0008: 20      -   paragraphs in header (l.byte)
+0009: 00      -   paragraphs in header (h.byte)
+000A: 00      -   minimum memory (l.byte)
+000B: 00      -   minimum memory (h.byte)
+000C: FF      -   maximum memory (l.byte)
+000D: FF      -   maximum memory (h.byte)
+000E: 00      -   SS - stack segment (l.byte)
+000F: 00      -   SS - stack segment (h.byte)
+0010: 00      -   SP - stack pointer (l.byte)
+0011: 00      -   SP - stack pointer (h.byte)
+0012: 8D      -   check sum (l.byte)
+0013: 55      -   check sum (h.byte)
+0014: 00      -   IP - instruction pointer (l.byte)
+0015: 00      -   IP - instruction pointer (h.byte)
+0016: 00      -   CS - code segment (l.byte)
+0017: 00      -   CS - code segment (h.byte)
+0018: 1E      -   relocation table adress (l.byte)
+0019: 00      -   relocation table adress (h.byte)
+001A: 00      -   overlay number (l.byte)
+001B: 00      -   overlay number (h.byte)
+001C: 01      -   signature (l.byte)
+001D: 00      -   signature (h.byte)
+001E to 01FF  -   reserved relocation area  (00) 
+
+
+
+
+===================================================================================================

@@ -1,0 +1,84 @@
+CODE    SEGMENT 'CODE' 
+        ASSUME CS:CODE,SS:STACK,DS:DATA
+        
+IOCON	EQU 8006H
+IOA     EQU 8000H
+IOB     EQU 8002H
+IOC     EQU 8004H
+
+START:
+        MOV AX, DATA
+        MOV DS, AX
+
+        MOV AX, STACK
+        MOV SS, AX
+
+        MOV AX, TOP
+        MOV SP, AX
+        
+        
+TEST_BU:
+	MOV AL,80H
+        MOV DX,IOCON
+        OUT DX,AL
+        NOP
+        
+ DISP:
+        LEA DI,TABLE
+	MOV CX,04H
+DISP1:
+	PUSH CX
+        MOV CX,08H
+        MOV BH,01H
+DISP2:
+       MOV DX,IOA
+	MOV AL,00H
+	OUT DX,AL
+        MOV DX,IOB
+	MOV AL,[DI]
+        OUT DX,AL
+	MOV DX,IOA
+        MOV AL,BH
+        OUT DX,AL
+        CALL DELAY2
+        INC DI
+        MOV AL,BH
+        SHl AL,1
+        MOV BH,AL
+        LOOP DISP2 
+	POP CX
+        LOOP DISP1
+	JMP DISP
+             	
+DELAY:  PUSH CX
+	MOV CX,10FH
+DELAY1:	NOP
+	NOP
+	NOP
+	NOP
+	LOOP DELAY1
+	POP CX
+	RET
+	
+DELAY2:  PUSH CX
+	MOV CX,01H
+DELAY3:
+	NOP
+	NOP
+	LOOP DELAY3
+	POP CX
+	RET
+	
+CODE    ENDS
+      
+STACK   SEGMENT 'STACK'
+STA     DB  100 DUP(?)
+TOP     EQU LENGTH STA
+STACK   ENDS       
+DATA    SEGMENT 'DATA'
+TABLE 	DB  0FFH,0EFH,0D7H,0BBH,0BBH,0ABH,31H,0FBH
+        	DB  0FFH,0EFH,0D7H,0BBH,0BBH,0ABH,29H,0EFH
+        	DB  0FFH,0EFH,0D7H,0BBH,0BBH,0ABH,19H,0BFH
+        	DB  0FFH,0EFH,0D7H,0BBH,0BBH,0ABH,29H,0EFH
+DATA    ENDS
+        END START

@@ -1,0 +1,65 @@
+EMU8086 GENERATED LISTING. MACHINE CODE <- SOURCE.
+ 
+MCPE-02.exe -- emu8086 assembler version: 4.08  
+ 
+[ 2025-11-19  --  9:04:40 ] 
+ 
+===================================================================================================
+[LINE]     LOC: MACHINE CODE                          SOURCE
+===================================================================================================
+ 
+[   1]        :                                       CODE    SEGMENT
+[   2]        :                                       ASSUME  CS:CODE          ; 关联代码段寄存器
+[   3]        :                                       CON_A   EQU 25           ; 定义常量CON_A
+[   4]        :                                       CON_B   EQU 12           ; 定义常量CON_B
+[   5]        :                                       
+[   6]    0000: B8 00 00                              START:  MOV     AX, 0           ; 初始化AX为0
+[   7]    0003: B9 05 00                              MOV     CX, 5           ; 设置循环次数为5
+[   8]    0006: 90                                    INC_AX: NOP                     ; 空操作（占位）
+[   9]    0007: 40                                    INC     AX              ; AX自增1
+[  10]    0008: E2 FC                                 LOOP    INC_AX          ; 循环执行，直到CX=0(LOOP会自动递减CX)
+[  11]    000A: EB FE                                 JMP     $               ; 无限循环（程序暂停）
+[  12]        :                                       CODE    ENDS                    ; 代码段结束
+[  13]        :                                       END     START           ; 程序入口点为START
+[  14]        :                                       
+ 
+===================================================================================================
+ 
+EXE HEADER - bytes from 0000 to 01FF inclusive.
+
+0000: 4D      -   exe signature (M)
+0001: 5A      -   exe signature (Z)
+0002: 0C      -   bytes on last page (l.byte)
+0003: 00      -   bytes on last page (h.byte)
+0004: 02      -   512 byte pages in file (l.byte)
+0005: 00      -   512 byte pages in file (h.byte)
+0006: 00      -   relocations (l.byte)
+0007: 00      -   relocations (h.byte)
+0008: 20      -   paragraphs in header (l.byte)
+0009: 00      -   paragraphs in header (h.byte)
+000A: 00      -   minimum memory (l.byte)
+000B: 00      -   minimum memory (h.byte)
+000C: FF      -   maximum memory (l.byte)
+000D: FF      -   maximum memory (h.byte)
+000E: 00      -   SS - stack segment (l.byte)
+000F: 00      -   SS - stack segment (h.byte)
+0010: 00      -   SP - stack pointer (l.byte)
+0011: 00      -   SP - stack pointer (h.byte)
+0012: 4C      -   check sum (l.byte)
+0013: AF      -   check sum (h.byte)
+0014: 00      -   IP - instruction pointer (l.byte)
+0015: 00      -   IP - instruction pointer (h.byte)
+0016: 00      -   CS - code segment (l.byte)
+0017: 00      -   CS - code segment (h.byte)
+0018: 1E      -   relocation table adress (l.byte)
+0019: 00      -   relocation table adress (h.byte)
+001A: 00      -   overlay number (l.byte)
+001B: 00      -   overlay number (h.byte)
+001C: 01      -   signature (l.byte)
+001D: 00      -   signature (h.byte)
+001E to 01FF  -   reserved relocation area  (00) 
+
+
+
+
+===================================================================================================

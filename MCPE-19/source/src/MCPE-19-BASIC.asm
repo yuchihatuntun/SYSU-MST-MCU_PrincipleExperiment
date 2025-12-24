@@ -1,0 +1,113 @@
+; =========================================================
+; 1. 先定义堆栈段 (移动到最前面)
+; =========================================================
+STACK   SEGMENT 'STACK'
+    STA      DB  100 DUP(0) ; 定义100字节的堆栈空间
+    ; TOP   EQU LENGTH STA  ; 去掉这就话，直接在代码里用常数，防止报错
+STACK   ENDS
+
+; =========================================================
+; 2. 定义数据段
+; =========================================================
+DATA    SEGMENT 'DATA'
+    ; 如果有数据定义在这里
+DATA    ENDS
+
+; =========================================================
+; 3. 最后定义代码段
+; =========================================================
+CODE    SEGMENT 'CODE'
+    ASSUME CS:CODE, SS:STACK, DS:DATA
+    
+    ; 端口定义
+    IOCON   EQU 8006H
+    IOA     EQU 8000H
+    IOB     EQU 8002H
+    IOC     EQU 8004H
+
+START:
+    ; 初始化数据段
+    MOV AX, DATA
+    MOV DS, AX
+
+    ; 初始化堆栈段
+    MOV AX, STACK
+    MOV SS, AX
+    
+    ; -----------------------------------------------------
+    ; 修改点：直接给 SP 赋值堆栈的大小 (100)
+    ; -----------------------------------------------------
+    MOV AX, 100      ; 对应 STA DB 100 DUP(?) 的大小
+    MOV SP, AX       ; 让堆栈指针指向栈顶
+    
+    ; 初始化 8255
+    MOV AL, 90H
+    MOV DX, IOCON
+    OUT DX, AL
+    
+    NOP
+    NOP
+
+; ... (后面的代码逻辑保持不变) ...
+
+TEST_BU: 
+    MOV DX, IOA
+    IN  AL, DX
+    NOP
+    
+test_1: TEST AL, 01H
+    JE MOT1            
+test_2: TEST AL, 02H
+    JE MOT2      
+test_3: TEST AL, 04H     
+    JE MOT3
+    JMP TEST_BU
+
+MOT1: 
+    MOV AL, 0FEH
+    MOV DX, IOB
+    OUT DX, AL
+    MOV DX, IOA
+    IN  AL, DX
+    TEST AL, 02H
+    JE MOT2      
+    TEST AL, 04H     
+    JE MOT3
+    JMP MOT1
+
+MOT2:
+    MOV AL, 0FDH
+    MOV DX, IOB
+    OUT DX, AL
+    MOV DX, IOA
+    IN  AL, DX
+    TEST AL, 01H
+    JE MOT1      
+    TEST AL, 04H     
+    JE MOT3
+    JMP MOT2
+
+MOT3:
+    MOV AL, 0FFH
+    MOV DX, IOB
+    OUT DX, AL
+    MOV DX, IOA
+    IN  AL, DX
+    TEST AL, 01H
+    JE MOT1      
+    TEST AL, 02H     
+    JE MOT2
+    JMP MOT3
+    
+DELAY:  PUSH CX
+    MOV CX, 0FH
+DELAY1: NOP
+    NOP
+    NOP
+    NOP
+    LOOP DELAY1
+    POP CX
+    RET
+    
+CODE    ENDS
+    END START

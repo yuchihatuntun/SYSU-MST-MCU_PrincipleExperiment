@@ -1,0 +1,18 @@
+< THE SYMBOL TABLE >  MCPE-18-BASIC.exe  --  emu8086 assembler version: 4.08 
+===================================================================================================
+Name                     	Offset    	Size      	Type      	Segment   
+===================================================================================================
+CODE                     	00000     	-5        	SEGMENT   	(ITSELF)  
+START                    	00000     	-1        	LABEL     	CODE      
+KEY4X4                   	0000E     	-1        	LABEL     	CODE      
+K_N_1                    	0006A     	-1        	LABEL     	CODE      
+K_N_2                    	00072     	-1        	LABEL     	CODE      
+K_N_3                    	0007A     	-1        	LABEL     	CODE      
+K_N_4                    	00082     	-1        	LABEL     	CODE      
+K_N                      	00088     	-1        	LABEL     	CODE      
+DATA                     	0000A     	-5        	SEGMENT   	(ITSELF)  
+TABLE                    	00000     	1         	VAR       	DATA      
+===================================================================================================
+[ 2025-12-24  --  9:42:17 ] 
+< END >
+ 

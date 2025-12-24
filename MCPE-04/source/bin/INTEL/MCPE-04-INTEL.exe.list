@@ -1,0 +1,99 @@
+EMU8086 GENERATED LISTING. MACHINE CODE <- SOURCE.
+ 
+MCPE-04-INTEL.exe -- emu8086 assembler version: 4.08  
+ 
+[ 2025-11-19  --  11:17:53 ] 
+ 
+===================================================================================================
+[LINE]     LOC: MACHINE CODE                          SOURCE
+===================================================================================================
+ 
+[   1]        :                                       CODE    SEGMENT
+[   2]        :                                       ASSUME  CS:CODE, DS:CODE, ES:CODE  ; 段定义
+[   3]        :                                       
+[   4]    0000:                                       START:
+[   5]        :                                       ; --- 1. 环境初始化 ---
+[   6]    0000: 8C C8                                 MOV     AX, CS
+[   7]    0002: 8E D8                                 MOV     DS, AX            ; DS = CS
+[   8]    0004: 8E C0                                 MOV     ES, AX            ; ES = CS
+[   9]        :                                       
+[  10]        :                                       ; --- 2. 实验数据 ---
+[  11]    0006: BE 00 10                              MOV     SI, 1000H
+[  12]    0009: B9 0A 00                              MOV     CX, 10
+[  13]    000C: B0 01                                 MOV     AL, 1
+[  14]    000E:                                       INIT_DATA:
+[  15]    000E: 88 04                                 MOV     [SI], AL
+[  16]    0010: FE C0                                 INC     AL
+[  17]    0012: 46                                    INC     SI
+[  18]    0013: E2 F9                                 LOOP    INIT_DATA
+[  19]        :                                       
+[  20]        :                                       ; ===  3. 通用迁移逻辑    ===
+[  21]        :                                       
+[  22]    0015: BE 00 10                              MOV     SI, 1000H
+[  23]    0018: BF 02 10                              MOV     DI, 1002H         ; 【输入】目的首地址
+[  24]    001B: B9 0A 00                              MOV     CX, 10
+[  25]        :                                       
+[  26]        :                                       ; --- 4. 判断逻辑 ---
+[  27]    001E: 3B F7                                 CMP     SI, DI            ; 比较源地址(SI) 和 目的地址(DI)
+[  28]    0020: 73 09                                 JAE     USE_FORWARD       ; 若 SI >= DI (源在后或相等)，跳去正向搬运
+[  29]        :                                       ; 若 SI < DI  (源在前)，继续执行默认倒序逻辑
+[  30]        :                                       
+[  31]    0022:                                       USE_BACKWARD:
+[  32]    0022: 03 F1                                 ADD     SI, CX
+[  33]    0024: 4E                                    DEC     SI                ; SI = SI + CX - 1
+[  34]    0025: 03 F9                                 ADD     DI, CX
+[  35]    0027: 4F                                    DEC     DI                ; DI = DI + CX - 1
+[  36]        :                                       
+[  37]    0028: FD                                    STD                       ; DF=1 (地址自动递减)
+[  38]    0029: EB 01                                 JMP     DO_MOVE           ; 跳转到公共搬运指令
+[  39]        :                                       
+[  40]    002B:                                       USE_FORWARD:
+[  41]    002B: FC                                    CLD                       ; DF=0 (地址自动递增)
+[  42]        :                                       
+[  43]    002C:                                       DO_MOVE:
+[  44]    002C: F3 A4                                 REP     MOVSB             ; 硬件循环：根据DF标志，自动增或减指针
+[  45]    002E: EB FE                                 JMP     $
+[  46]        :                                       CODE    ENDS
+[  47]        :                                       END     START
+[  48]        :                                       
+ 
+===================================================================================================
+ 
+EXE HEADER - bytes from 0000 to 01FF inclusive.
+
+0000: 4D      -   exe signature (M)
+0001: 5A      -   exe signature (Z)
+0002: 30      -   bytes on last page (l.byte)
+0003: 00      -   bytes on last page (h.byte)
+0004: 02      -   512 byte pages in file (l.byte)
+0005: 00      -   512 byte pages in file (h.byte)
+0006: 00      -   relocations (l.byte)
+0007: 00      -   relocations (h.byte)
+0008: 20      -   paragraphs in header (l.byte)
+0009: 00      -   paragraphs in header (h.byte)
+000A: 00      -   minimum memory (l.byte)
+000B: 00      -   minimum memory (h.byte)
+000C: FF      -   maximum memory (l.byte)
+000D: FF      -   maximum memory (h.byte)
+000E: 00      -   SS - stack segment (l.byte)
+000F: 00      -   SS - stack segment (h.byte)
+0010: 00      -   SP - stack pointer (l.byte)
+0011: 00      -   SP - stack pointer (h.byte)
+0012: A0      -   check sum (l.byte)
+0013: 84      -   check sum (h.byte)
+0014: 00      -   IP - instruction pointer (l.byte)
+0015: 00      -   IP - instruction pointer (h.byte)
+0016: 00      -   CS - code segment (l.byte)
+0017: 00      -   CS - code segment (h.byte)
+0018: 1E      -   relocation table adress (l.byte)
+0019: 00      -   relocation table adress (h.byte)
+001A: 00      -   overlay number (l.byte)
+001B: 00      -   overlay number (h.byte)
+001C: 01      -   signature (l.byte)
+001D: 00      -   signature (h.byte)
+001E to 01FF  -   reserved relocation area  (00) 
+
+
+
+
+===================================================================================================
